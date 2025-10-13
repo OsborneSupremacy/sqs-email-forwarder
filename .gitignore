@@ -419,3 +419,7 @@ FodyWeavers.xsd
 
 # MacOs
 .DS_Store
+
+# Terraform (.tfvars is temporary)
+.terraform
+.tfvars
