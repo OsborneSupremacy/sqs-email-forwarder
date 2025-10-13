@@ -1,7 +1,7 @@
 locals {
   common_tags = {
     Environment = "live"
-    Application = "sqs-email-forwarded"
+    Application = "sqs-email-forwarder"
     ManagedBy   = "terraform"
     Owner       = "ses@osbornesupremacy.com"
   }

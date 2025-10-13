@@ -1,6 +1,4 @@
 
-// IAM role and policy for the Sqs Email Forwarder lambda
-
 data "aws_iam_policy_document" "assume_role" {
   statement {
     effect = "Allow"
@@ -66,13 +64,13 @@ data "aws_iam_policy_document" "sqs_s3_ses_policy" {
 }
 
 resource "aws_iam_role" "lambda_role" {
-  name               = var.role_name
+  name               = "sqs-email-forwarder-lambda-role"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
   tags               = local.common_tags
 }
 
 resource "aws_iam_role_policy" "lambda_inline_policy" {
-  name   = "${var.role_name}-policy"
+  name   = "${aws_iam_role.lambda_role.name}-policy"
   role   = aws_iam_role.lambda_role.id
   policy = data.aws_iam_policy_document.sqs_s3_ses_policy.json
 }
