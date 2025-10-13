@@ -123,11 +123,11 @@ public class Function
         throw new InvalidRequestException("Email not found in any configured bucket");
     }
 
-    private Task<string> CreateForwardedEmailAsync(EmailInfo emailInfo)
+    private async Task<string> CreateForwardedEmailAsync(EmailInfo emailInfo)
     {
-        using var messageStream = new MemoryStream(emailInfo.RawEmail);
+        await using var messageStream = new MemoryStream(emailInfo.RawEmail);
 
-        var mailObject = MimeMessage.Load(messageStream);
+        using var mailObject = await MimeMessage.LoadAsync(messageStream);
         var subjectOriginal = mailObject.Subject ?? "(no subject)";
 
         var subject = subjectOriginal.StartsWith("FW:") || subjectOriginal.StartsWith("FWD:")
@@ -165,7 +165,7 @@ public class Function
         builder.Attachments.Add($"{filename}.eml", emailInfo.RawEmail, new ContentType("message", "rfc822"));
         msg.Body = builder.ToMessageBody();
 
-        return Task.FromResult(msg.ToString());
+        return msg.ToString();
     }
 
     private static string ExtractBody(MimeMessage mailobject)
