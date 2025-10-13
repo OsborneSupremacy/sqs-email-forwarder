@@ -8,12 +8,12 @@ variable "s3_bucket_names" {
   type        = list(string)
 }
 
-variable "mail_sender_name" {
-  description = "The name of the email sender (do not include the email)"
-  type = string
+variable "mail_senders" {
+  description = "The sender email addresses"
+  type        = list(string)
 }
 
 variable "mail_recipient" {
   description = "value"
-  type = string
+  type        = string
 }

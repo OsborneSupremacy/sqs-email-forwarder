@@ -7,6 +7,7 @@ using Amazon.SimpleEmail;
 using Amazon.SimpleEmail.Model;
 using MimeKit;
 using System.Text.Json;
+using Sqs.Email.Forwarder.Models;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
@@ -23,7 +24,7 @@ public class Function
 
     private readonly IAmazonSimpleEmailService _sesClient;
 
-    private readonly string _emailSender;
+    private readonly string[] _emailSenders;
 
     private readonly string _emailRecipient;
 
@@ -36,7 +37,12 @@ public class Function
         if(!_mailBuckets.Any())
             throw new InvalidOperationException("No S3 buckets configured in MAIL_S3_BUCKETS environment variable");
 
-        _emailSender = Environment.GetEnvironmentVariable("MAIL_SENDER") ?? throw new InvalidOperationException("MAIL_SENDER environment variable not set");
+        _emailSenders = (Environment.GetEnvironmentVariable("MAIL_SENDERS") ?? string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        if(!_emailSenders.Any())
+            throw new InvalidOperationException("No email senders configured in MAIL_SENDERS environment variable");
+
         _emailRecipient = Environment.GetEnvironmentVariable("MAIL_RECIPIENT") ?? throw new InvalidOperationException("MAIL_RECIPIENT environment variable not set");
 
         _awsRegion = Environment.GetEnvironmentVariable("AWS_REGION")!;
@@ -54,10 +60,9 @@ public class Function
     /// <returns></returns>
     public async Task FunctionHandler(SQSEvent evnt, ILambdaContext context)
     {
-        var tasks = evnt.Records
-            .Select(message => ProcessMessageAsync(message, context))
-            .ToList();
-        await Task.WhenAll(tasks);
+        // do not parallelize. Messages are read into memory. We don't want to read too many at once.
+        foreach (var message in evnt.Records)
+            await ProcessMessageAsync(message, context);
     }
 
     private async Task ProcessMessageAsync(SQSEvent.SQSMessage message, ILambdaContext context)
@@ -66,9 +71,9 @@ public class Function
 
         context.Logger.LogInformation($"Processing SES messageId: {messageId}");
 
-        var fileDict = await GetMessageFromS3Async(messageId, context);
-        var emailData = await CreateForwardedEmailAsync(fileDict);
-        var sendResult = await SendEmailAsync(messageId, emailData);
+        var emailInfo = await GetMessageFromS3Async(messageId, context);
+        var forwardedEmail = await CreateForwardedEmailAsync(emailInfo);
+        var sendResult = await SendEmailAsync(emailInfo, forwardedEmail);
 
         context.Logger.LogInformation(sendResult);
     }
@@ -79,8 +84,9 @@ public class Function
         return doc.RootElement.GetProperty("id").GetString() ?? throw new InvalidRequestException("No id property in SQS message");
     }
 
-    private async Task<Dictionary<string, object>> GetMessageFromS3Async(string messageId, ILambdaContext context)
+    private async Task<EmailInfo> GetMessageFromS3Async(string messageId, ILambdaContext context)
     {
+        var bucketIndex = 0;
         foreach(var bucket in _mailBuckets)
         {
             var metaDataResponse = await _s3Client.GetObjectMetadataAsync(new GetObjectMetadataRequest
@@ -92,6 +98,7 @@ public class Function
             if (metaDataResponse.HttpStatusCode != HttpStatusCode.OK)
             {
                 context.Logger.LogInformation($"Email with messageId {messageId} not found in bucket {bucket}, status code: {metaDataResponse.HttpStatusCode}");
+                bucketIndex++;
                 continue;
             }
 
@@ -104,22 +111,21 @@ public class Function
             await using var ms = new MemoryStream();
             await obj.ResponseStream.CopyToAsync(ms);
             var rawEmail = ms.ToArray();
-            return new Dictionary<string, object>
+            return new EmailInfo
             {
-                ["file"] = rawEmail,
-                ["path"] = $"https://s3.console.aws.amazon.com/s3/object/{bucket}/{messageId}?region={_awsRegion}"
+                MessageId = messageId,
+                Resender = _emailSenders[bucketIndex],
+                RawEmail = rawEmail,
+                Url = $"https://s3.console.aws.amazon.com/s3/object/{bucket}/{messageId}?region={_awsRegion}"
             };
         }
 
         throw new InvalidRequestException("Email not found in any configured bucket");
     }
 
-    private Task<string> CreateForwardedEmailAsync(Dictionary<string, object> fileDict)
+    private Task<string> CreateForwardedEmailAsync(EmailInfo emailInfo)
     {
-        var rawEmail = (byte[])fileDict["file"];
-        var path = (string)fileDict["path"];
-
-        using var messageStream = new MemoryStream(rawEmail);
+        using var messageStream = new MemoryStream(emailInfo.RawEmail);
 
         var mailObject = MimeMessage.Load(messageStream);
         var subjectOriginal = mailObject.Subject ?? "(no subject)";
@@ -141,13 +147,13 @@ public class Function
         <hr>
         <pre style='font-family: sans-serif; white-space: pre-wrap;'>{extractedBody}</pre>
         <hr>
-        <p>Original message archived at <a href='{path}'>{path}</a></p>
+        <p>Original message archived at <a href='{emailInfo.Url}'>{emailInfo.Url}</a></p>
         </body></html>
         """;
 
         using var msg = new MimeMessage();
         msg.Subject = subject;
-        msg.From.Add(MailboxAddress.Parse(_emailSender));
+        msg.From.Add(MailboxAddress.Parse(emailInfo.Resender));
         msg.To.Add(MailboxAddress.Parse(_emailRecipient));
 
         var builder = new BodyBuilder { HtmlBody = bodyHtml };
@@ -156,7 +162,7 @@ public class Function
         var filename = new string(subjectOriginal.Where(char.IsLetterOrDigit).ToArray());
         if (filename.Length > 50) filename = filename[..50];
 
-        builder.Attachments.Add($"{filename}.eml", rawEmail, new ContentType("message", "rfc822"));
+        builder.Attachments.Add($"{filename}.eml", emailInfo.RawEmail, new ContentType("message", "rfc822"));
         msg.Body = builder.ToMessageBody();
 
         return Task.FromResult(msg.ToString());
@@ -188,17 +194,17 @@ public class Function
         return "(No readable message body found)";
     }
 
-    private async Task<string> SendEmailAsync(string messageId, string emailData)
+    private async Task<string> SendEmailAsync(EmailInfo emailInfo, string forwardedEmail)
     {
-        await using var rawMessageStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(emailData));
+        await using var rawMessageStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(forwardedEmail));
 
         var req = new SendRawEmailRequest
         {
-            Source = _emailSender,
+            Source = emailInfo.Resender,
             Destinations = [ _emailRecipient ],
             RawMessage = new RawMessage(rawMessageStream),
         };
         await _sesClient.SendRawEmailAsync(req);
-        return $"Email sent! Message ID: {messageId}";
+        return $"Email sent! Message ID: {emailInfo.MessageId}";
     }
 }
