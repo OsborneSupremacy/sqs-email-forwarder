@@ -22,7 +22,7 @@ resource "aws_sns_topic_policy" "silverconcord_inbox_policy" {
         Resource = aws_sns_topic.silverconcord_inbox.arn
         Condition = {
           StringEquals = {
-            "AWS:SourceAccount" = "182571449491"
+            "AWS:SourceAccount" = local.account_id
           }
           StringLike = {
             "AWS:SourceArn" = "arn:aws:ses:*"
@@ -49,7 +49,7 @@ resource "aws_sns_topic_policy" "osbornesupremancy_inbox_policy" {
         Resource = aws_sns_topic.osbornesupremancy_inbox.arn
         Condition = {
           StringEquals = {
-            "AWS:SourceAccount" = "182571449491"
+            "AWS:SourceAccount" = local.account_id
           }
           StringLike = {
             "AWS:SourceArn" = "arn:aws:ses:*"

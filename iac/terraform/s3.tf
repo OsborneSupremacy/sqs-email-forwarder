@@ -22,7 +22,7 @@ resource "aws_s3_bucket_policy" "ses_inbox_policy" {
         Resource = "arn:aws:s3:::bro-ses-inbox-osbornesupremacy/*"
         Condition = {
           StringEquals = {
-            "aws:Referer" = "182571449491"
+            "aws:Referer" = local.account_id
           }
         }
       }
@@ -46,7 +46,7 @@ resource "aws_s3_bucket_policy" "ses_inbox_silverconcord_policy" {
         Resource = "arn:aws:s3:::bro-ses-inbox-silverconcord/*"
         Condition = {
           StringEquals = {
-            "aws:Referer" = "182571449491"
+            "aws:Referer" = local.account_id
           }
         }
       }

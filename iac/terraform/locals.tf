@@ -2,6 +2,8 @@ locals {
 
   project_directory = "../../src/Sqs.Email.Forwarder"
 
+  account_id = data.aws_caller_identity.current.account_id
+
   mail_senders   = ["ses@osbornesupremacy.com", "ses@silverconcord.com"]
   mail_recipient = "osborne.ben@gmail.com"
 
@@ -23,3 +25,5 @@ locals {
     aws_s3_bucket.bro-ses-inbox-silverconcord.bucket
   ]
 }
+
+data "aws_caller_identity" "current" {}
