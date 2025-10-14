@@ -168,23 +168,21 @@ public class Function
         return msg.ToString();
     }
 
-    private static string ExtractBody(MimeMessage mailobject)
+    private static string ExtractBody(MimeMessage mailObject)
     {
-        switch (mailobject.Body)
+        switch (mailObject.Body)
         {
             // Try to get plain text, fallback to HTML
             case Multipart multipart:
             {
                 foreach (var part in multipart)
-                {
                     if (part is TextPart { IsPlain: true } textPart)
                         return textPart.Text;
-                }
+
                 foreach (var part in multipart)
-                {
                     if (part is TextPart { IsHtml: true } textPart)
                         return textPart.Text;
-                }
+
                 break;
             }
             case TextPart text:
