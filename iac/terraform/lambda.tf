@@ -6,7 +6,7 @@ resource "aws_lambda_function" "forwarder_lambda" {
   runtime          = "dotnet8"
   architectures    = ["arm64"]
   memory_size      = 256
-  timeout          = 30
+  timeout          = 300
   filename         = data.archive_file.lambda_function.output_path
   source_code_hash = data.archive_file.lambda_function.output_base64sha256
   role             = aws_iam_role.lambda_role.arn

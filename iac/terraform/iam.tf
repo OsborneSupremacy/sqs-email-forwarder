@@ -73,11 +73,3 @@ resource "aws_iam_role_policy" "lambda_inline_policy" {
   policy = data.aws_iam_policy_document.sqs_s3_ses_policy.json
 }
 
-resource "aws_lambda_event_source_mapping" "sqs_trigger" {
-  for_each                           = toset(local.sqs_queue_arns)
-  event_source_arn                   = each.value
-  function_name                      = aws_lambda_function.forwarder_lambda.arn
-  batch_size                         = 1
-  maximum_batching_window_in_seconds = 60
-  enabled                            = true
-}
