@@ -81,7 +81,15 @@ public class Function
     private static string ExtractSesMessageId(string sqsBody)
     {
         using var doc = JsonDocument.Parse(sqsBody);
-        return doc.RootElement.GetProperty("MessageId").GetString() ?? throw new InvalidRequestException("No id property in SQS message");
+        var messageId = doc.RootElement
+            .GetProperty("Message")
+            .GetString() ?? throw new InvalidOperationException("SQS message is not in expected format.");;
+
+        using var innerDoc = JsonDocument.Parse(messageId);
+        return innerDoc.RootElement
+            .GetProperty("mail")
+            .GetProperty("messageId")
+            .GetString() ?? throw new InvalidOperationException("Message is not in expected format.");
     }
 
     private async Task<EmailInfo> GetMessageFromS3Async(string messageId, ILambdaContext context)
@@ -89,15 +97,16 @@ public class Function
         var bucketIndex = 0;
         foreach(var bucket in _mailBuckets)
         {
-            var metaDataResponse = await _s3Client.GetObjectMetadataAsync(new GetObjectMetadataRequest
+            try
             {
-                BucketName = bucket,
-                Key = messageId
-            });
-
-            if (metaDataResponse.HttpStatusCode != HttpStatusCode.OK)
+                await _s3Client.GetObjectMetadataAsync(new GetObjectMetadataRequest
+                {
+                    BucketName = bucket,
+                    Key = messageId
+                });
+            } catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
-                context.Logger.LogInformation($"Email with messageId {messageId} not found in bucket {bucket}, status code: {metaDataResponse.HttpStatusCode}");
+                context.Logger.LogInformation($"Email with messageId {messageId} not found in bucket {bucket}, exception: {ex.Message}");
                 bucketIndex++;
                 continue;
             }
