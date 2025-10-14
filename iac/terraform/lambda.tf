@@ -17,5 +17,4 @@ resource "aws_lambda_function" "forwarder_lambda" {
       "MAIL_RECIPIENT"  = var.mail_recipient
     }
   }
-  tags = local.common_tags
 }

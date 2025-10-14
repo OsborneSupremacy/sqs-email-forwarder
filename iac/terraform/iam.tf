@@ -65,7 +65,6 @@ data "aws_iam_policy_document" "sqs_s3_ses_policy" {
 resource "aws_iam_role" "lambda_role" {
   name               = "sqs-email-forwarder-lambda-role"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
-  tags               = local.common_tags
 }
 
 resource "aws_iam_role_policy" "lambda_inline_policy" {

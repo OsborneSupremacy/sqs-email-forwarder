@@ -1,5 +1,14 @@
 provider "aws" {
   region = "us-east-1"
+
+  default_tags {
+    tags = {
+      Environment = "live"
+      Application = "sqs-email-forwarder"
+      ManagedBy   = "terraform"
+      Owner       = "ses@osbornesupremacy.com"
+    }
+  }
 }
 
 terraform {
