@@ -20,7 +20,7 @@ data "aws_iam_policy_document" "sqs_s3_ses_policy" {
       "sqs:GetQueueAttributes",
       "sqs:GetQueueUrl",
     ]
-    resources = var.sqs_queue_arns
+    resources = local.sqs_queue_arns
   }
 
   statement {
@@ -75,10 +75,10 @@ resource "aws_iam_role_policy" "lambda_inline_policy" {
 }
 
 resource "aws_lambda_event_source_mapping" "sqs_trigger" {
-  for_each                            = toset(var.sqs_queue_arns)
-  event_source_arn                    = each.value
-  function_name                       = aws_lambda_function.forwarder_lambda.arn
-  batch_size                          = 1
-  maximum_batching_window_in_seconds  = 60
-  enabled                             = true
+  for_each                           = toset(local.sqs_queue_arns)
+  event_source_arn                   = each.value
+  function_name                      = aws_lambda_function.forwarder_lambda.arn
+  batch_size                         = 1
+  maximum_batching_window_in_seconds = 60
+  enabled                            = true
 }

@@ -1,6 +1,5 @@
 
 resource "aws_lambda_function" "forwarder_lambda" {
-
   function_name    = "sqs-email-forwarder-lambda"
   description      = "Function that consumes SES notification messages from SQS and forwards emails to configured address"
   handler          = "Sqs.Email.Forwarder::Sqs.Email.Forwarder.Function::FunctionHandler"

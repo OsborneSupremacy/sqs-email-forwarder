@@ -15,4 +15,9 @@ locals {
 
   build_output_path = "${local.project_directory}/bin/publish"
   publish_zip_path  = "${local.project_directory}/bin/lambda_function.zip"
+
+  sqs_queue_arns = [
+    aws_sqs_queue.silverconcord_inbox.arn,
+    aws_sqs_queue.osbornesupremacy_inbox.arn
+  ]
 }
