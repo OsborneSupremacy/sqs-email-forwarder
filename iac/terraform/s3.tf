@@ -54,3 +54,28 @@ resource "aws_s3_bucket_policy" "ses_inbox_silverconcord_policy" {
   })
 }
 
+resource "aws_s3_bucket_lifecycle_configuration" "ses_inbox_osbornesupremacy_lifecycle" {
+  bucket = "bro-ses-inbox-osbornesupremacy"
+
+  rule {
+    id     = "expire-objects-after-7-days"
+    status = "Enabled"
+
+    expiration {
+      days = 7
+    }
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "ses_inbox_silverconcord_lifecycle" {
+  bucket = "bro-ses-inbox-silverconcord"
+
+  rule {
+    id     = "expire-objects-after-7-days"
+    status = "Enabled"
+
+    expiration {
+      days = 7
+    }
+  }
+}
