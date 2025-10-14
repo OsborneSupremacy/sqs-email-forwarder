@@ -18,5 +18,6 @@ The architecture is as follows:
 * SNS topics (one per email domain).
 * SNS topic subscriptions to SQS queues.
 * SQS queues (one per email domain).
+* SQL triggers to invoke Lambda function (one per email domain).
 * Lambda function to process SQS messages and forward emails.
 * All necessary resource policies and IAM roles/policies.
