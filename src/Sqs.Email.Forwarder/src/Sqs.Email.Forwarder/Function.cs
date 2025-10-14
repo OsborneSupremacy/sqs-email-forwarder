@@ -81,7 +81,7 @@ public class Function
     private static string ExtractSesMessageId(string sqsBody)
     {
         using var doc = JsonDocument.Parse(sqsBody);
-        return doc.RootElement.GetProperty("id").GetString() ?? throw new InvalidRequestException("No id property in SQS message");
+        return doc.RootElement.GetProperty("MessageId").GetString() ?? throw new InvalidRequestException("No id property in SQS message");
     }
 
     private async Task<EmailInfo> GetMessageFromS3Async(string messageId, ILambdaContext context)
