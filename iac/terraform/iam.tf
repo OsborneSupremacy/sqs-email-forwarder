@@ -33,8 +33,8 @@ data "aws_iam_policy_document" "sqs_s3_ses_policy" {
       "s3:ListBucket",
     ]
     resources = concat(
-      [for b in var.s3_bucket_names : "arn:aws:s3:::${b}"],
-      [for b in var.s3_bucket_names : "arn:aws:s3:::${b}/*"],
+      [for b in local.s3_bucket_names : "arn:aws:s3:::${b}"],
+      [for b in local.s3_bucket_names : "arn:aws:s3:::${b}/*"],
     )
   }
 

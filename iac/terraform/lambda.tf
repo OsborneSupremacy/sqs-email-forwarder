@@ -12,9 +12,9 @@ resource "aws_lambda_function" "forwarder_lambda" {
   role             = aws_iam_role.lambda_role.arn
   environment {
     variables = {
-      "MAIL_S3_BUCKETS" = join(",", var.s3_bucket_names)
-      "MAIL_SENDERS"    = join(",", var.mail_senders),
-      "MAIL_RECIPIENT"  = var.mail_recipient
+      "MAIL_S3_BUCKETS" = join(",", local.s3_bucket_names)
+      "MAIL_SENDERS"    = join(",", local.mail_senders),
+      "MAIL_RECIPIENT"  = local.mail_recipient
     }
   }
 }
