@@ -83,7 +83,7 @@ public class Function
         using var doc = JsonDocument.Parse(sqsBody);
         var messageId = doc.RootElement
             .GetProperty("Message")
-            .GetString() ?? throw new InvalidOperationException("SQS message is not in expected format.");;
+            .GetString() ?? throw new InvalidOperationException("SQS message is not in expected format.");
 
         using var innerDoc = JsonDocument.Parse(messageId);
         return innerDoc.RootElement
