@@ -9,6 +9,8 @@ internal record EmailInfo
     /// </summary>
     public required string Resender { get; init; }
 
+    public required string Domain { get; init; }
+
     public required byte[] RawEmail { get; init; }
 
     public required string Url { get; init; }

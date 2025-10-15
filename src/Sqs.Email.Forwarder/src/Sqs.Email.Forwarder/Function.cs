@@ -120,11 +120,16 @@ public class Function
             await using var ms = new MemoryStream();
             await obj.ResponseStream.CopyToAsync(ms);
             var rawEmail = ms.ToArray();
+
+            var emailSender = _emailSenders[bucketIndex];
+            var emailDomain = GetEmailDomain(emailSender);
+
             return new EmailInfo
             {
                 MessageId = messageId,
                 Resender = _emailSenders[bucketIndex],
                 RawEmail = rawEmail,
+                Domain = emailDomain,
                 Url = $"https://s3.console.aws.amazon.com/s3/object/{bucket}/{messageId}?region={_awsRegion}"
             };
         }
@@ -139,8 +144,10 @@ public class Function
         using var mailObject = await MimeMessage.LoadAsync(messageStream);
         var subjectOriginal = mailObject.Subject ?? "(no subject)";
 
-        var sender = ExtractSenderIfo(mailObject.From);
-        var subject = $"[{sender.FriendlyName}] {subjectOriginal}";
+        var sender = ExtractSenderInfo(mailObject.From);
+        var recipient = ExtractRelevantRecipientInfo(mailObject.To, emailInfo.Domain);
+
+        var subject = $"[{sender.FriendlyName}]➡️[{recipient.EmailAddress}] {subjectOriginal}";
 
         // Extract readable body
         var extractedBody = ExtractBody(mailObject);
@@ -176,7 +183,7 @@ public class Function
         return msg.ToString();
     }
 
-    private static MailboxInfo ExtractSenderIfo(InternetAddressList senderList)
+    private static MailboxInfo ExtractSenderInfo(InternetAddressList senderList)
     {
         var sender = senderList.Mailboxes.FirstOrDefault();
 
@@ -192,6 +199,34 @@ public class Function
             FriendlyName = senderName,
             NameAndAddress = senderInfo
         };
+    }
+
+    private static MailboxInfo ExtractRelevantRecipientInfo(InternetAddressList recipientList, string domain)
+    {
+        var recipient = recipientList.Mailboxes
+            .FirstOrDefault(r => r.Address.EndsWith($"@{domain}", StringComparison.OrdinalIgnoreCase));
+
+        var recipientName = recipient?.Name ?? string.Empty;
+        var recipientEmail = recipient?.Address ?? $"not-found@{domain}";
+        var recipientInfo = !string.IsNullOrWhiteSpace(recipientName)
+            ? $"{recipientName} <{recipientEmail}>"
+            : recipientEmail;
+
+        return new MailboxInfo
+        {
+            EmailAddress = recipientEmail,
+            FriendlyName = recipientName,
+            NameAndAddress = recipientInfo
+        };
+    }
+
+    private static string GetEmailDomain(string emailAddress)
+    {
+        var atIndex = emailAddress.IndexOf('@');
+        if (atIndex < 0 || atIndex == emailAddress.Length - 1)
+            return "@unknown.com";
+
+        return emailAddress[(atIndex + 1)..];
     }
 
     private static string ExtractBody(MimeMessage mailObject)
