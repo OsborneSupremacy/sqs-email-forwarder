@@ -139,9 +139,7 @@ public class Function
         using var mailObject = await MimeMessage.LoadAsync(messageStream);
         var subjectOriginal = mailObject.Subject ?? "(no subject)";
 
-        var subject = subjectOriginal.StartsWith("FW:") || subjectOriginal.StartsWith("FWD:")
-            ? subjectOriginal
-            : $"FW: {subjectOriginal}";
+        var subject = $"[{ExtractFriendlySenderName(mailObject.From)}] {subjectOriginal}";
 
         // Extract readable body
         var extractedBody = ExtractBody(mailObject);
@@ -175,6 +173,15 @@ public class Function
         msg.Body = builder.ToMessageBody();
 
         return msg.ToString();
+    }
+
+    private static string ExtractFriendlySenderName(InternetAddressList senderList)
+    {
+        var sender = senderList.FirstOrDefault();
+        var friendlyName = sender?.Name ?? "Unknown Sender";
+        if (friendlyName.StartsWith('"') && friendlyName.EndsWith('"'))
+            friendlyName = friendlyName[1..^1];
+        return friendlyName;
     }
 
     private static string ExtractBody(MimeMessage mailObject)
