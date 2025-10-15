@@ -139,7 +139,8 @@ public class Function
         using var mailObject = await MimeMessage.LoadAsync(messageStream);
         var subjectOriginal = mailObject.Subject ?? "(no subject)";
 
-        var subject = $"[{ExtractFriendlySenderName(mailObject.From)}] {subjectOriginal}";
+        var sender = ExtractSenderIfo(mailObject.From);
+        var subject = $"[{sender.FriendlyName}] {subjectOriginal}";
 
         // Extract readable body
         var extractedBody = ExtractBody(mailObject);
@@ -147,7 +148,7 @@ public class Function
         var bodyHtml = $"""
         <html><body>
         <p><strong>Forwarded message:</strong></p>
-        <p><strong>From:</strong> {mailObject.From}<br>
+        <p><strong>From:</strong> {sender.FriendlyName} | {sender.EmailAddress}<br>
            <strong>To:</strong> {mailObject.To}<br>
            <strong>Date:</strong> {mailObject.Date}<br>
            <strong>Subject:</strong> {subjectOriginal}</p>
@@ -175,13 +176,22 @@ public class Function
         return msg.ToString();
     }
 
-    private static string ExtractFriendlySenderName(InternetAddressList senderList)
+    private static MailboxInfo ExtractSenderIfo(InternetAddressList senderList)
     {
-        var sender = senderList.FirstOrDefault();
-        var friendlyName = sender?.Name ?? "Unknown Sender";
-        if (friendlyName.StartsWith('"') && friendlyName.EndsWith('"'))
-            friendlyName = friendlyName[1..^1];
-        return friendlyName;
+        var sender = senderList.Mailboxes.FirstOrDefault();
+
+        var senderName = sender?.Name ?? string.Empty;
+        var senderEmail = sender?.Address ?? "unknown@unknown.com";
+        var senderInfo = !string.IsNullOrWhiteSpace(senderName)
+            ? $"{senderName} <{senderEmail}>"
+            : senderEmail;
+
+        return new MailboxInfo
+        {
+            EmailAddress = senderEmail,
+            FriendlyName = senderName,
+            NameAndAddress = senderInfo
+        };
     }
 
     private static string ExtractBody(MimeMessage mailObject)
