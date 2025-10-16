@@ -147,7 +147,7 @@ public class Function
         var sender = ExtractSenderInfo(mailObject.From);
         var recipient = ExtractRelevantRecipientInfo(mailObject.To, emailInfo.Domain);
 
-        var subject = $"[{sender.FriendlyName}]➡️[{recipient.EmailAddress}] {subjectOriginal}";
+        var subject = $"[{sender.FriendlyName}]➡️[{recipient.LocalPart}] {subjectOriginal}";
 
         // Extract readable body
         var extractedBody = ExtractBody(mailObject);
@@ -196,7 +196,8 @@ public class Function
         return new MailboxInfo
         {
             EmailAddress = senderEmail,
-            FriendlyName = senderName,
+            FriendlyName = string.IsNullOrWhiteSpace(senderName) ? senderEmail : senderInfo,
+            LocalPart = GetEmailLocalPart(senderEmail),
             NameAndAddress = senderInfo
         };
     }
@@ -214,6 +215,7 @@ public class Function
 
         return new MailboxInfo
         {
+            LocalPart = GetEmailLocalPart(recipientEmail),
             EmailAddress = recipientEmail,
             FriendlyName = recipientName,
             NameAndAddress = recipientInfo
@@ -227,6 +229,12 @@ public class Function
             return "@unknown.com";
 
         return emailAddress[(atIndex + 1)..];
+    }
+
+    private static string GetEmailLocalPart(string emailAddress)
+    {
+        var atIndex = emailAddress.IndexOf('@');
+        return atIndex <= 0 ? "unknown" : emailAddress[..atIndex];
     }
 
     private static string ExtractBody(MimeMessage mailObject)
