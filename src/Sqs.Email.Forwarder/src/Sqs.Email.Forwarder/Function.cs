@@ -196,7 +196,7 @@ public class Function
         return new MailboxInfo
         {
             EmailAddress = senderEmail,
-            FriendlyName = string.IsNullOrWhiteSpace(senderName) ? senderEmail : senderInfo,
+            FriendlyName = string.IsNullOrWhiteSpace(senderName) ? senderEmail : senderName,
             LocalPart = GetEmailLocalPart(senderEmail),
             NameAndAddress = senderInfo
         };
