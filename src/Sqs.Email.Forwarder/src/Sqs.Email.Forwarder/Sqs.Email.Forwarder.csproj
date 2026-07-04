@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
@@ -9,13 +9,14 @@
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <!-- Generate ready to run images during publishing to improve cold start time. -->
         <PublishReadyToRun>true</PublishReadyToRun>
+        <LangVersion>14</LangVersion>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Amazon.Lambda.Core" Version="2.7.1" />
-        <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.4" />
-        <PackageReference Include="Amazon.Lambda.SQSEvents" Version="2.2.0"/>
-        <PackageReference Include="MimeKit" Version="4.14.0" />
-        <PackageReference Include="AWSSDK.S3" Version="4.0.7.9" />
-        <PackageReference Include="AWSSDK.SimpleEmail" Version="4.0.1.8" />
+        <PackageReference Include="Amazon.Lambda.Core" Version="3.1.1" />
+        <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" Version="3.0.0" />
+        <PackageReference Include="Amazon.Lambda.SQSEvents" Version="3.0.0" />
+        <PackageReference Include="MimeKit" Version="4.17.0" />
+        <PackageReference Include="AWSSDK.S3" Version="4.0.100.2" />
+        <PackageReference Include="AWSSDK.SimpleEmail" Version="4.0.100.2" />
     </ItemGroup>
 </Project>

@@ -7,17 +7,17 @@ namespace Sqs.Email.Forwarder.Tests;
 public class FunctionTest
 {
     [Fact]
-    public async Task TestSQSEventLambdaFunction()
+    public async Task TestSqsEventLambdaFunction()
     {
         var sqsEvent = new SQSEvent
         {
-            Records = new List<SQSEvent.SQSMessage>
-            {
+            Records =
+            [
                 new SQSEvent.SQSMessage
                 {
                     Body = "foobar"
                 }
-            }
+            ]
         };
 
         var logger = new TestLambdaLogger();

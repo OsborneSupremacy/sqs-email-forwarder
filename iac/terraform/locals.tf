@@ -9,10 +9,9 @@ locals {
 
   build_command = <<EOT
       cd ${local.project_directory}
-      dotnet publish -o bin/publish -c Release --framework "net8.0" /p:GenerateRuntimeConfigurationFiles=true --runtime linux-arm64 --self-contained false
+      dotnet publish -o bin/publish -c Release --framework "net10.0" /p:GenerateRuntimeConfigurationFiles=true --runtime linux-arm64 --self-contained false
     EOT
-
-  build_output_path = "${local.project_directory}/bin/publish"
+ build_output_path = "${local.project_directory}/bin/publish"
   publish_zip_path  = "${local.project_directory}/bin/lambda_function.zip"
 
   sqs_queue_arns = [
@@ -26,4 +25,3 @@ locals {
   ]
 }
 
-data "aws_caller_identity" "current" {}

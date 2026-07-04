@@ -3,7 +3,7 @@ resource "aws_lambda_function" "forwarder_lambda" {
   function_name    = "sqs-email-forwarder-lambda"
   description      = "Function that consumes SES notification messages from SQS and forwards emails to configured address"
   handler          = "Sqs.Email.Forwarder::Sqs.Email.Forwarder.Function::FunctionHandler"
-  runtime          = "dotnet8"
+  runtime          = "dotnet10"
   architectures    = ["arm64"]
   memory_size      = 256
   timeout          = 300
