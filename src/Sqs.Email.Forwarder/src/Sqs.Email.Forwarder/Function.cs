@@ -73,9 +73,7 @@ public class Function
 
         var emailInfo = await GetMessageFromS3Async(messageId, context);
         var forwardedEmail = await CreateForwardedEmailAsync(emailInfo);
-        var sendResult = await SendEmailAsync(emailInfo, forwardedEmail);
-
-        context.Logger.LogInformation(sendResult);
+        await SendEmailAsync(emailInfo, forwardedEmail, context);
     }
 
     private static string ExtractSesMessageId(string sqsBody)
@@ -155,9 +153,9 @@ public class Function
         var bodyHtml = $"""
         <html><body>
         <p><strong>Forwarded message:</strong></p>
-        <p><strong>From:</strong> {sender.FriendlyName} | {sender.EmailAddress}<br>
-           <strong>To:</strong> {mailObject.To}<br>
-           <strong>Date:</strong> {mailObject.Date}<br>
+        <p><strong>From:</strong> {sender.FriendlyName} | {sender.EmailAddress}<br />
+           <strong>To:</strong> {mailObject.To}<br />
+           <strong>Date:</strong> {mailObject.Date}<br />
            <strong>Subject:</strong> {subjectOriginal}</p>
         <hr>
         <pre style='font-family: sans-serif; white-space: pre-wrap;'>{extractedBody}</pre>
@@ -261,7 +259,7 @@ public class Function
         return "(No readable message body found)";
     }
 
-    private async Task<string> SendEmailAsync(EmailInfo emailInfo, string forwardedEmail)
+    private async Task SendEmailAsync(EmailInfo emailInfo, string forwardedEmail, ILambdaContext context)
     {
         await using var rawMessageStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(forwardedEmail));
 
@@ -272,6 +270,6 @@ public class Function
             RawMessage = new RawMessage(rawMessageStream),
         };
         await _sesClient.SendRawEmailAsync(req);
-        return $"Email sent! Message ID: {emailInfo.MessageId}";
+        context.Logger.LogInformation($"Email sent! Message ID: {emailInfo.MessageId}");
     }
 }
