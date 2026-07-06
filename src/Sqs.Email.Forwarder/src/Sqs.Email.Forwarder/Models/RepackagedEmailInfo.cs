@@ -1,6 +1,9 @@
 namespace Sqs.Email.Forwarder.Models;
 
-internal record ForwardedEmailInfo
+/// <summary>
+/// The received email, repackaged in order to be forwarded to final inbox.
+/// </summary>
+internal record RepackagedEmailInfo
 {
     public required string MessageId { get; init; }
 

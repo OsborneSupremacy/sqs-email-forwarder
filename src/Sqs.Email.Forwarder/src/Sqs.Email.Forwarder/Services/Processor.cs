@@ -33,16 +33,16 @@ internal class Processor : IProcessor
 
         _logger.LogInformation("Processing SES messageId: {MessageId}", messageId);
 
-        var emailInfo = await _emailProvider
-            .GetEmailAsync(messageId)
+        var receivedEmail = await _emailProvider
+            .GetReceivedEmailAsync(messageId)
             .ConfigureAwait(false);
 
-        var forwardedEmail = await _emailTransformer
-            .TransformToForwardedEmailAsync(emailInfo)
+        var repackagedEmail = await _emailTransformer
+            .RepackageEmailAsync(receivedEmail)
             .ConfigureAwait(false);
 
         await _emailSender
-            .SendEmailAsync(emailInfo, forwardedEmail)
+            .SendEmailAsync(repackagedEmail)
             .ConfigureAwait(false);;
     }
 }

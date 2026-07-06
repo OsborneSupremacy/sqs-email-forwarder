@@ -22,10 +22,37 @@ internal class EmailProvider : IEmailProvider
         _s3Client = s3Client ?? throw new ArgumentNullException(nameof(s3Client));
     }
 
-    public async Task<EmailInfo> GetEmailAsync(string messageId)
+    public async Task<ReceivedEmailInfo> GetReceivedEmailAsync(string messageId)
+    {
+        var bucketIndex = await GetObjectBucketIndexAsync(messageId);
+        var bucket = _config.MailBuckets[bucketIndex];
+
+        var obj = await _s3Client.GetObjectAsync(new GetObjectRequest
+        {
+            BucketName = bucket,
+            Key = messageId
+        });
+
+        await using var ms = new MemoryStream();
+        await obj.ResponseStream.CopyToAsync(ms);
+        var rawEmail = ms.ToArray();
+
+        var emailSender = _config.EmailSenders[bucketIndex];
+
+        return new ReceivedEmailInfo
+        {
+            MessageId = messageId,
+            Resender = _config.EmailSenders[bucketIndex],
+            RawEmail = rawEmail,
+            Domain = emailSender.GetEmailDomain(),
+            Url = $"https://s3.console.aws.amazon.com/s3/object/{bucket}/{messageId}?region={_config.AwsRegion}"
+        };
+    }
+
+    private async Task<int> GetObjectBucketIndexAsync(string messageId)
     {
         var bucketIndex = 0;
-        foreach(var bucket in _config.MailBuckets)
+        foreach (var bucket in _config.MailBuckets)
         {
             try
             {
@@ -34,34 +61,14 @@ internal class EmailProvider : IEmailProvider
                     BucketName = bucket,
                     Key = messageId
                 });
-            } catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
-            {
-                _logger.LogInformation("Email with messageId {MessageId} not found in bucket {Bucket}, exception: {ExMessage}", messageId, bucket, ex.Message);
-                bucketIndex++;
-                continue;
+                return bucketIndex;
             }
-
-            var obj = await _s3Client.GetObjectAsync(new GetObjectRequest
+            catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
-                BucketName = bucket,
-                Key = messageId
-            });
-
-            await using var ms = new MemoryStream();
-            await obj.ResponseStream.CopyToAsync(ms);
-            var rawEmail = ms.ToArray();
-
-            var emailSender = _config.EmailSenders[bucketIndex];
-
-            return new EmailInfo
-            {
-                MessageId = messageId,
-                Resender = _config.EmailSenders[bucketIndex],
-                RawEmail = rawEmail,
-                Domain = emailSender.GetEmailDomain(),
-                Url = $"https://s3.console.aws.amazon.com/s3/object/{bucket}/{messageId}?region={_config.AwsRegion}"
-            };
+                bucketIndex++;
+            }
         }
+
         throw new InvalidRequestException("Email not found in any configured bucket");
     }
 }

@@ -21,23 +21,22 @@ internal class EmailSender : IEmailSender
         _config  = config ?? throw new ArgumentNullException(nameof(config));
     }
 
-    public async Task SendEmailAsync(
-        EmailInfo emailInfo,
-        string forwardedEmail
-        )
+    public async Task SendEmailAsync(MimeEncodedEmailInfo mimeEncodedEmailInfo)
     {
-        await using var rawMessageStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(forwardedEmail));
+        await using var rawMessageStream =
+            new MemoryStream(System.Text.Encoding.UTF8.GetBytes(mimeEncodedEmailInfo.MimeEncodedEmail));
 
         var req = new SendRawEmailRequest
         {
-            Source = emailInfo.Resender,
+            Source = mimeEncodedEmailInfo.Resender,
             Destinations = [ _config.EmailRecipient ],
             RawMessage = new RawMessage(rawMessageStream),
         };
+
         await _sesClient
             .SendRawEmailAsync(req)
             .ConfigureAwait(false);
 
-        _logger.LogInformation("Email sent! Message ID: {EmailInfoMessageId}", emailInfo.MessageId);
+        _logger.LogInformation("Email sent! Message ID: {EmailInfoMessageId}", mimeEncodedEmailInfo.MessageId);
     }
 }

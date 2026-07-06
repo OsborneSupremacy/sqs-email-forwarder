@@ -1,6 +1,9 @@
 namespace Sqs.Email.Forwarder.Models;
 
-internal record EmailInfo
+/// <summary>
+/// The email message as it was originally received in S3 / SNS
+/// </summary>
+internal record ReceivedEmailInfo
 {
     public required string MessageId { get; init; }
 

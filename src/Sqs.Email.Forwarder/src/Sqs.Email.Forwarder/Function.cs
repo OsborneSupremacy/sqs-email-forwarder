@@ -21,13 +21,13 @@ public class Function
     /// This method is called for every Lambda invocation. This method takes in an SQS event object and can be used
     /// to respond to SQS messages.
     /// </summary>
-    /// <param name="evnt">The event for the Lambda function handler to process.</param>
+    /// <param name="sqsEvent">The event for the Lambda function handler to process.</param>
     /// <param name="context">The ILambdaContext that provides methods for logging and describing the Lambda environment.</param>
     /// <returns></returns>
-    public async Task FunctionHandler(SQSEvent evnt, ILambdaContext context)
+    public async Task FunctionHandler(SQSEvent sqsEvent, ILambdaContext context)
     {
         // do not parallelize. Messages are read into memory. We don't want to read too many at once.
-        foreach (var message in evnt.Records)
+        foreach (var message in sqsEvent.Records)
             await _processor.ProcessMessageAsync(message);
     }
 

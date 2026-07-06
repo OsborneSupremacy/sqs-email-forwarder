@@ -2,5 +2,5 @@ namespace Sqs.Email.Forwarder.Abstractions;
 
 internal interface IEmailProvider
 {
-    public Task<EmailInfo> GetEmailAsync(string messageId);
+    public Task<ReceivedEmailInfo> GetReceivedEmailAsync(string messageId);
 }

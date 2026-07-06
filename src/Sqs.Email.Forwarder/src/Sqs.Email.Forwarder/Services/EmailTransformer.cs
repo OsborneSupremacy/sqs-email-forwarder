@@ -21,30 +21,30 @@ internal class EmailTransformer : IEmailTransformer
         _extractionService = extractionService ?? throw new ArgumentNullException(nameof(extractionService));
     }
 
-    public async Task<string> TransformToForwardedEmailAsync(EmailInfo emailInfo)
+    public async Task<MimeEncodedEmailInfo> RepackageEmailAsync(ReceivedEmailInfo receivedEmailInfo)
     {
-        using var mailObject = await GetMailObjectAsync(emailInfo)
+        using var mailObject = await GetMailObjectAsync(receivedEmailInfo)
             .ConfigureAwait(false);
 
-        var generated = ComposeForwardedEmail(emailInfo, mailObject);
+        var repackaged = RepackagedEmail(receivedEmailInfo, mailObject);
 
-        return TransformToMimeString(generated);
+        return MimeEncodeEmail(repackaged);
     }
 
-    private async Task<MimeMessage> GetMailObjectAsync(EmailInfo emailInfo)
+    private async Task<MimeMessage> GetMailObjectAsync(ReceivedEmailInfo receivedEmailInfo)
     {
-        await using var messageStream = new MemoryStream(emailInfo.RawEmail);
+        await using var messageStream = new MemoryStream(receivedEmailInfo.RawEmail);
         return await MimeMessage
             .LoadAsync(messageStream)
             .ConfigureAwait(false);
     }
 
-    private ForwardedEmailInfo ComposeForwardedEmail(EmailInfo emailInfo, MimeMessage mailObject)
+    private RepackagedEmailInfo RepackagedEmail(ReceivedEmailInfo receivedEmailInfo, MimeMessage mailObject)
     {
         var subjectOriginal = mailObject.Subject ?? "(no subject)";
 
         var sender = _extractionService.ExtractSenderInfo(mailObject.From);
-        var recipient = _extractionService.ExtractRelevantRecipientInfo(mailObject.To, emailInfo.Domain);
+        var recipient = _extractionService.ExtractRelevantRecipientInfo(mailObject.To, receivedEmailInfo.Domain);
 
         var subject = $"[{sender.FriendlyName}]➡️[{recipient.LocalPart}] {subjectOriginal}";
 
@@ -60,18 +60,18 @@ internal class EmailTransformer : IEmailTransformer
                         <hr>
                         <pre style="font-family: sans-serif; white-space: pre-wrap;">{extractedBody}</pre>
                         <hr>
-                        <p>Original message archived at <a href="{emailInfo.Url}">{emailInfo.Url}</a></p>
+                        <p>Original message archived at <a href="{receivedEmailInfo.Url}">{receivedEmailInfo.Url}</a></p>
                         </body></html>
                         """;
 
-        return new ForwardedEmailInfo
+        return new RepackagedEmailInfo
         {
-            MessageId = emailInfo.MessageId,
+            MessageId = receivedEmailInfo.MessageId,
             Subject = subject,
             SubjectOriginal = subjectOriginal,
             HtmlBody = bodyHtml,
-            RawEmail = emailInfo.RawEmail,
-            Resender = emailInfo.Resender
+            RawEmail = receivedEmailInfo.RawEmail,
+            Resender = receivedEmailInfo.Resender
         };
     }
 
@@ -80,23 +80,28 @@ internal class EmailTransformer : IEmailTransformer
     ///
     /// https://docs.aws.amazon.com/ses/latest/dg/attachments.html
     /// </summary>
-    /// <param name="forwarded"></param>
+    /// <param name="repackaged"></param>
     /// <returns></returns>
-    private string TransformToMimeString(ForwardedEmailInfo forwarded)
+    private MimeEncodedEmailInfo MimeEncodeEmail(RepackagedEmailInfo repackaged)
     {
         using var msg = new MimeMessage();
-        msg.Subject = forwarded.Subject;
-        msg.From.Add(MailboxAddress.Parse(forwarded.Resender));
+        msg.Subject = repackaged.Subject;
+        msg.From.Add(MailboxAddress.Parse(repackaged.Resender));
         msg.To.Add(MailboxAddress.Parse(_config.EmailRecipient));
 
-        var builder = new BodyBuilder { HtmlBody = forwarded.HtmlBody };
+        var builder = new BodyBuilder { HtmlBody = repackaged.HtmlBody };
 
         // Attach original .eml
-        var filename = forwarded.SubjectOriginal.ToSesAttachmentSafeFileName();
+        var filename = repackaged.SubjectOriginal.ToSesAttachmentSafeFileName();
 
-        builder.Attachments.Add($"{filename}.eml", forwarded.RawEmail, new ContentType("message", "rfc822"));
+        builder.Attachments.Add($"{filename}.eml", repackaged.RawEmail, new ContentType("message", "rfc822"));
         msg.Body = builder.ToMessageBody();
 
-        return msg.ToString();
+        return new MimeEncodedEmailInfo
+        {
+            MessageId = repackaged.MessageId,
+            Resender = repackaged.Resender,
+            MimeEncodedEmail = msg.ToString()
+        };
     }
 }
