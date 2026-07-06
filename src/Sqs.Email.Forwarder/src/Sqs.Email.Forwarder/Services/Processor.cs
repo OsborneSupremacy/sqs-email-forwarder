@@ -1,4 +1,3 @@
-using Amazon.Lambda.SQSEvents;
 using Sqs.Email.Forwarder.Providers;
 
 namespace Sqs.Email.Forwarder.Services;
@@ -30,14 +29,22 @@ internal class Processor
         _emailSender = emailSender ?? throw new ArgumentNullException(nameof(emailSender));
     }
 
-    public async Task ProcessMessageAsync(SQSEvent.SQSMessage message, ILambdaContext context)
+    public async Task ProcessMessageAsync(SQSEvent.SQSMessage message)
     {
         var messageId = _extractionService.ExtractSesMessageId(message.Body);
 
         _logger.LogInformation("Processing SES messageId: {MessageId}", messageId);
 
-        var emailInfo = await _emailProvider.GetEmailAsync(messageId);
-        var forwardedEmail = await _emailTransformer.TransformToForwardedEmailAsync(emailInfo);
-        await _emailSender.SendEmailAsync(emailInfo, forwardedEmail);
+        var emailInfo = await _emailProvider
+            .GetEmailAsync(messageId)
+            .ConfigureAwait(false);
+
+        var forwardedEmail = await _emailTransformer
+            .TransformToForwardedEmailAsync(emailInfo)
+            .ConfigureAwait(false);
+
+        await _emailSender
+            .SendEmailAsync(emailInfo, forwardedEmail)
+            .ConfigureAwait(false);;
     }
 }

@@ -1,6 +1,5 @@
 using Amazon.SimpleEmail;
 using Amazon.SimpleEmail.Model;
-using Sqs.Email.Forwarder.Models;
 
 namespace Sqs.Email.Forwarder.Services;
 
@@ -36,7 +35,10 @@ internal class EmailSender
             Destinations = [ _config.EmailRecipient ],
             RawMessage = new RawMessage(rawMessageStream),
         };
-        await _sesClient.SendRawEmailAsync(req);
+        await _sesClient
+            .SendRawEmailAsync(req)
+            .ConfigureAwait(false);
+
         _logger.LogInformation("Email sent! Message ID: {EmailInfoMessageId}", emailInfo.MessageId);
     }
 }

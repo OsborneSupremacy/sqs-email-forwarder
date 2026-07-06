@@ -2,8 +2,8 @@ using Amazon.Extensions.NETCore.Setup;
 using Amazon.S3;
 using Amazon.SimpleEmail;
 using Microsoft.Extensions.DependencyInjection;
-using Sqs.Email.Forwarder.Models;
 using Sqs.Email.Forwarder.Providers;
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace Sqs.Email.Forwarder.Services;
 
@@ -46,7 +46,6 @@ internal static class ServiceProviderBuilder
             return services.AddSingleton(config);
         }
 
-        // ReSharper disable once MemberCanBePrivate.Global
         internal IServiceCollection AddBusinessServices() =>
             services
                 .AddSingleton<EmailSender>()

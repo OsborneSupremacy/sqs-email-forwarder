@@ -1,4 +1,3 @@
-using Amazon.Lambda.SQSEvents;
 using Microsoft.Extensions.DependencyInjection;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
@@ -29,7 +28,7 @@ public class Function
     {
         // do not parallelize. Messages are read into memory. We don't want to read too many at once.
         foreach (var message in evnt.Records)
-            await _processor.ProcessMessageAsync(message, context);
+            await _processor.ProcessMessageAsync(message);
     }
 
 

@@ -1,6 +1,5 @@
 using Amazon.S3;
 using Amazon.S3.Model;
-using Sqs.Email.Forwarder.Models;
 
 namespace Sqs.Email.Forwarder.Providers;
 

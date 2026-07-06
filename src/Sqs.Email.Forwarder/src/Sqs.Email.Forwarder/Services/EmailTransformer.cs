@@ -1,5 +1,4 @@
 using MimeKit;
-using Sqs.Email.Forwarder.Models;
 
 namespace Sqs.Email.Forwarder.Services;
 
@@ -22,7 +21,10 @@ internal class EmailTransformer
     {
         await using var messageStream = new MemoryStream(emailInfo.RawEmail);
 
-        using var mailObject = await MimeMessage.LoadAsync(messageStream);
+        using var mailObject = await MimeMessage
+            .LoadAsync(messageStream)
+            .ConfigureAwait(false);
+
         var subjectOriginal = mailObject.Subject ?? "(no subject)";
 
         var sender = _extractionService.ExtractSenderInfo(mailObject.From);

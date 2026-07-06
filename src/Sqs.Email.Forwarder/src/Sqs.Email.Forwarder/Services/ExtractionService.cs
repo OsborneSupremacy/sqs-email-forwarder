@@ -1,5 +1,4 @@
 using MimeKit;
-using Sqs.Email.Forwarder.Models;
 
 namespace Sqs.Email.Forwarder.Services;
 
@@ -56,7 +55,7 @@ internal class ExtractionService
         {
             EmailAddress = senderEmail,
             FriendlyName = string.IsNullOrWhiteSpace(senderName) ? senderEmail : senderName,
-            LocalPart = GetEmailLocalPart(senderEmail),
+            LocalPart = senderEmail.GetEmailLocalPart(),
             NameAndAddress = senderInfo
         };
     }
@@ -73,16 +72,10 @@ internal class ExtractionService
 
         return new MailboxInfo
         {
-            LocalPart = GetEmailLocalPart(recipientEmail),
+            LocalPart = recipientEmail.GetEmailLocalPart(),
             EmailAddress = recipientEmail,
             FriendlyName = recipientName,
             NameAndAddress = recipientInfo
         };
-    }
-
-    private static string GetEmailLocalPart(string emailAddress)
-    {
-        var atIndex = emailAddress.IndexOf('@');
-        return atIndex <= 0 ? "unknown" : emailAddress[..atIndex];
     }
 }
