@@ -52,14 +52,13 @@ internal class EmailProvider : IEmailProvider
             var rawEmail = ms.ToArray();
 
             var emailSender = _config.EmailSenders[bucketIndex];
-            var emailDomain = emailSender.GetEmailDomain();
 
             return new EmailInfo
             {
                 MessageId = messageId,
                 Resender = _config.EmailSenders[bucketIndex],
                 RawEmail = rawEmail,
-                Domain = emailDomain,
+                Domain = emailSender.GetEmailDomain(),
                 Url = $"https://s3.console.aws.amazon.com/s3/object/{bucket}/{messageId}?region={_config.AwsRegion}"
             };
         }

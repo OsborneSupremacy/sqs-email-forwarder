@@ -23,12 +23,24 @@ internal class EmailTransformer : IEmailTransformer
 
     public async Task<string> TransformToForwardedEmailAsync(EmailInfo emailInfo)
     {
-        await using var messageStream = new MemoryStream(emailInfo.RawEmail);
-
-        using var mailObject = await MimeMessage
-            .LoadAsync(messageStream)
+        using var mailObject = await GetMailObjectAsync(emailInfo)
             .ConfigureAwait(false);
 
+        var generated = ComposeForwardedEmail(emailInfo, mailObject);
+
+        return TransformToMimeString(generated);
+    }
+
+    private async Task<MimeMessage> GetMailObjectAsync(EmailInfo emailInfo)
+    {
+        await using var messageStream = new MemoryStream(emailInfo.RawEmail);
+        return await MimeMessage
+            .LoadAsync(messageStream)
+            .ConfigureAwait(false);
+    }
+
+    private ForwardedEmailInfo ComposeForwardedEmail(EmailInfo emailInfo, MimeMessage mailObject)
+    {
         var subjectOriginal = mailObject.Subject ?? "(no subject)";
 
         var sender = _extractionService.ExtractSenderInfo(mailObject.From);
@@ -36,7 +48,6 @@ internal class EmailTransformer : IEmailTransformer
 
         var subject = $"[{sender.FriendlyName}]➡️[{recipient.LocalPart}] {subjectOriginal}";
 
-        // Extract readable body
         var extractedBody = _extractionService.ExtractBody(mailObject);
 
         var bodyHtml = $"""
@@ -53,18 +64,37 @@ internal class EmailTransformer : IEmailTransformer
                         </body></html>
                         """;
 
+        return new ForwardedEmailInfo
+        {
+            MessageId = emailInfo.MessageId,
+            Subject = subject,
+            SubjectOriginal = subjectOriginal,
+            HtmlBody = bodyHtml,
+            RawEmail = emailInfo.RawEmail,
+            Resender = emailInfo.Resender
+        };
+    }
+
+    /// <summary>
+    /// Sending attachments using SES requires MIME message construction. I don't like it.
+    ///
+    /// https://docs.aws.amazon.com/ses/latest/dg/attachments.html
+    /// </summary>
+    /// <param name="forwarded"></param>
+    /// <returns></returns>
+    private string TransformToMimeString(ForwardedEmailInfo forwarded)
+    {
         using var msg = new MimeMessage();
-        msg.Subject = subject;
-        msg.From.Add(MailboxAddress.Parse(emailInfo.Resender));
+        msg.Subject = forwarded.Subject;
+        msg.From.Add(MailboxAddress.Parse(forwarded.Resender));
         msg.To.Add(MailboxAddress.Parse(_config.EmailRecipient));
 
-        var builder = new BodyBuilder { HtmlBody = bodyHtml };
+        var builder = new BodyBuilder { HtmlBody = forwarded.HtmlBody };
 
         // Attach original .eml
-        var filename = new string(subjectOriginal.Where(char.IsLetterOrDigit).ToArray());
-        if (filename.Length > 50) filename = filename[..50];
+        var filename = forwarded.SubjectOriginal.ToSesAttachmentSafeFileName();
 
-        builder.Attachments.Add($"{filename}.eml", emailInfo.RawEmail, new ContentType("message", "rfc822"));
+        builder.Attachments.Add($"{filename}.eml", forwarded.RawEmail, new ContentType("message", "rfc822"));
         msg.Body = builder.ToMessageBody();
 
         return msg.ToString();

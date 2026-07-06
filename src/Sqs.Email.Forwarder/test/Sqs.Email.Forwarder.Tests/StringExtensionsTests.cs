@@ -98,6 +98,50 @@ public class StringExtensionsTests
 		// Assert
 		result.Should().Be("sub@example.com");
 	}
+
+	[Theory]
+	[InlineData("Re: [Alert] Hello, world! #2026", "ReAlertHelloworld2026")]
+	[InlineData("SimpleFileName123", "SimpleFileName123")]
+	[InlineData("file-name_with.mixed+chars", "filenamewithmixedchars")]
+	[InlineData("   spaced   out   ", "spacedout")]
+	[InlineData("\tline\nbreak\rtest", "linebreaktest")]
+	[InlineData("!!!@@@###", "")]
+	[InlineData("", "")]
+	[InlineData("abcDEF123", "abcDEF123")]
+	[InlineData("0-1-2-3-4-5", "012345")]
+	[InlineData("invoice_2026-07-06.pdf", "invoice20260706pdf")]
+	[InlineData("john.doe+tag@example.com", "johndoetagexamplecom")]
+	[InlineData("[Ticket-42] Server: db-01", "Ticket42Serverdb01")]
+	[InlineData("naive cafe resume", "naivecaferesume")]
+	[InlineData("Caf\u00e9 d\u00e9j\u00e0 vu", "Cafdjvu")]
+	[InlineData("\u65e5\u672c\u8a9e123\u30c6\u30b9\u30c8", "123")]
+	[InlineData("emoji \ud83d\ude00 test \ud83d\ude80 99", "emojitest99")]
+	[InlineData("A(B)C[D]E{F}<G>", "ABCDEFG")]
+	[InlineData("a/b\\c:d*e?f\"g<h>i|j", "abcdefghij")]
+	public void ToSafeFileName_StringContainsNonAlphaNumericCharacters_RemovesInvalidCharacters(string input, string expectedOutput)
+	{
+		// Arrange
+
+		// Act
+		var result = input.ToSesAttachmentSafeFileName();
+
+		// Assert
+		result.Should().Be(expectedOutput);
+	}
+
+	[Fact]
+	public void ToSafeFileName_StringExceedsMaxLength_TruncatesToMaxLength()
+	{
+		// Arrange
+		const string sut = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+
+		// Act
+		var result = sut.ToSesAttachmentSafeFileName();
+
+		// Assert
+		result.Length.Should().Be(50);
+		result.Should().Be("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWX");
+	}
 }
 
 public class GetEmailLocalPartWhenInvalidEmailAddressData : TheoryData<string>
