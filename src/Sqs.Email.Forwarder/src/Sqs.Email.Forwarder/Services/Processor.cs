@@ -1,25 +1,23 @@
-using Sqs.Email.Forwarder.Providers;
-
 namespace Sqs.Email.Forwarder.Services;
 
-internal class Processor
+internal class Processor : IProcessor
 {
     private readonly ILogger<Processor> _logger;
 
-    private readonly ExtractionService _extractionService;
+    private readonly IExtractionService _extractionService;
 
-    private readonly EmailProvider _emailProvider;
+    private readonly IEmailProvider _emailProvider;
 
-    private readonly EmailTransformer _emailTransformer;
+    private readonly IEmailTransformer _emailTransformer;
 
-    private readonly EmailSender _emailSender;
+    private readonly IEmailSender _emailSender;
 
     public Processor(
         ILogger<Processor> logger,
-        ExtractionService extractionService,
-        EmailProvider emailProvider,
-        EmailTransformer emailTransformer,
-        EmailSender emailSender
+        IExtractionService extractionService,
+        IEmailProvider emailProvider,
+        IEmailTransformer emailTransformer,
+        IEmailSender emailSender
         )
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));

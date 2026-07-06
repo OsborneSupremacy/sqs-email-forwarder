@@ -2,8 +2,15 @@ using MimeKit;
 
 namespace Sqs.Email.Forwarder.Services;
 
-internal class ExtractionService
+internal class ExtractionService : IExtractionService
 {
+    private readonly ILogger<ExtractionService> _logger;
+
+    public ExtractionService(ILogger<ExtractionService> logger)
+    {
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
     public string ExtractSesMessageId(string sqsBody)
     {
         using var doc = JsonDocument.Parse(sqsBody);
@@ -59,6 +66,7 @@ internal class ExtractionService
             NameAndAddress = senderInfo
         };
     }
+
     public MailboxInfo ExtractRelevantRecipientInfo(InternetAddressList recipientList, string domain)
     {
         var recipient = recipientList.Mailboxes

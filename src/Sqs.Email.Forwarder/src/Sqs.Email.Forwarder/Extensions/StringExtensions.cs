@@ -13,5 +13,13 @@ internal static class StringExtensions
             var atIndex = emailAddress.IndexOf('@');
             return atIndex <= 0 ? "unknown" : emailAddress[..atIndex];
         }
+
+        public string GetEmailDomain()
+        {
+            var atIndex = emailAddress.IndexOf('@');
+            if (atIndex < 0 || atIndex == emailAddress.Length - 1)
+                return "@unknown.com";
+            return emailAddress[(atIndex + 1)..];
+        }
     }
 }

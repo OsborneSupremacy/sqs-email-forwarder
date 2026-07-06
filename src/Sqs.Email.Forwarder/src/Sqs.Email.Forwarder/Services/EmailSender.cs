@@ -1,9 +1,8 @@
 using Amazon.SimpleEmail;
-using Amazon.SimpleEmail.Model;
 
 namespace Sqs.Email.Forwarder.Services;
 
-internal class EmailSender
+internal class EmailSender : IEmailSender
 {
     private readonly ILogger<EmailSender> _logger;
 

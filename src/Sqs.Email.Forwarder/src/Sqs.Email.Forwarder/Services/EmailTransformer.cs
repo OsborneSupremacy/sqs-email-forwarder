@@ -2,17 +2,21 @@ using MimeKit;
 
 namespace Sqs.Email.Forwarder.Services;
 
-internal class EmailTransformer
+internal class EmailTransformer : IEmailTransformer
 {
-    private readonly ExtractionService  _extractionService;
+    private readonly ILogger<EmailTransformer> _logger;
+
+    private readonly IExtractionService  _extractionService;
 
     private readonly Config _config;
 
     public EmailTransformer(
+        ILogger<EmailTransformer> logger,
         Config config,
-        ExtractionService extractionService
+        IExtractionService extractionService
         )
     {
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _config = config ?? throw new ArgumentNullException(nameof(config));
         _extractionService = extractionService ?? throw new ArgumentNullException(nameof(extractionService));
     }
@@ -43,9 +47,9 @@ internal class EmailTransformer
                            <strong>Date:</strong> {mailObject.Date}<br />
                            <strong>Subject:</strong> {subjectOriginal}</p>
                         <hr>
-                        <pre style='font-family: sans-serif; white-space: pre-wrap;'>{extractedBody}</pre>
+                        <pre style="font-family: sans-serif; white-space: pre-wrap;">{extractedBody}</pre>
                         <hr>
-                        <p>Original message archived at <a href='{emailInfo.Url}'>{emailInfo.Url}</a></p>
+                        <p>Original message archived at <a href="{emailInfo.Url}">{emailInfo.Url}</a></p>
                         </body></html>
                         """;
 

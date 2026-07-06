@@ -3,7 +3,7 @@ using Amazon.S3.Model;
 
 namespace Sqs.Email.Forwarder.Providers;
 
-internal class EmailProvider
+internal class EmailProvider : IEmailProvider
 {
     private readonly ILogger<EmailProvider> _logger;
 
@@ -52,7 +52,7 @@ internal class EmailProvider
             var rawEmail = ms.ToArray();
 
             var emailSender = _config.EmailSenders[bucketIndex];
-            var emailDomain = GetEmailDomain(emailSender);
+            var emailDomain = emailSender.GetEmailDomain();
 
             return new EmailInfo
             {
@@ -64,13 +64,5 @@ internal class EmailProvider
             };
         }
         throw new InvalidRequestException("Email not found in any configured bucket");
-    }
-
-    private static string GetEmailDomain(string emailAddress)
-    {
-        var atIndex = emailAddress.IndexOf('@');
-        if (atIndex < 0 || atIndex == emailAddress.Length - 1)
-            return "@unknown.com";
-        return emailAddress[(atIndex + 1)..];
     }
 }

@@ -2,7 +2,7 @@ using Amazon.Extensions.NETCore.Setup;
 using Amazon.S3;
 using Amazon.SimpleEmail;
 using Microsoft.Extensions.DependencyInjection;
-using Sqs.Email.Forwarder.Providers;
+
 // ReSharper disable MemberCanBePrivate.Global
 
 namespace Sqs.Email.Forwarder.Services;
@@ -11,7 +11,7 @@ internal static class ServiceProviderBuilder
 {
     public static IServiceProvider Build() =>
         new ServiceCollection()
-            .AddConfig()
+            .AddConfigFromEnvironmentVariables()
             .AddUtilities()
             .AddVendorServices()
             .AddProviders()
@@ -20,7 +20,7 @@ internal static class ServiceProviderBuilder
 
     extension(IServiceCollection services)
     {
-        internal IServiceCollection AddConfig()
+        internal IServiceCollection AddConfigFromEnvironmentVariables()
         {
             var mailBuckets = EnvReader
                 .GetStringValue("MAIL_S3_BUCKETS")
@@ -48,14 +48,14 @@ internal static class ServiceProviderBuilder
 
         internal IServiceCollection AddBusinessServices() =>
             services
-                .AddSingleton<EmailSender>()
-                .AddSingleton<EmailTransformer>()
-                .AddSingleton<ExtractionService>()
-                .AddSingleton<Processor>();
+                .AddSingleton<IEmailSender, EmailSender>()
+                .AddSingleton<IEmailTransformer, EmailTransformer>()
+                .AddSingleton<IExtractionService, ExtractionService>()
+                .AddSingleton<IProcessor, Processor>();
 
         internal IServiceCollection AddProviders() =>
             services
-                .AddSingleton<EmailProvider>();
+                .AddSingleton<IEmailProvider, EmailProvider>();
 
         internal IServiceCollection AddUtilities() =>
             services
