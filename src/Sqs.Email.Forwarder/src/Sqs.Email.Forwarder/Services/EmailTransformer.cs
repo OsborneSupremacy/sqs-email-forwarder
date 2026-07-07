@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MimeKit;
 
 namespace Sqs.Email.Forwarder.Services;
@@ -71,7 +72,10 @@ internal class EmailTransformer : IEmailTransformer
             SubjectOriginal = subjectOriginal,
             HtmlBody = bodyHtml,
             RawEmail = receivedEmailInfo.RawEmail,
-            Resender = receivedEmailInfo.Resender
+            Resender = receivedEmailInfo.Resender,
+            OriginalSenderEmail = sender.EmailAddress,
+            OriginalMessageId = mailObject.MessageId ?? string.Empty,
+            OriginalDate = mailObject.Date
         };
     }
 
@@ -82,12 +86,24 @@ internal class EmailTransformer : IEmailTransformer
     /// </summary>
     /// <param name="repackaged"></param>
     /// <returns></returns>
+    [SuppressMessage("Performance", "CA1865:Use char overload")]
     private MimeEncodedEmailInfo MimeEncodeEmail(RepackagedEmailInfo repackaged)
     {
         using var msg = new MimeMessage();
         msg.Subject = repackaged.Subject;
         msg.From.Add(MailboxAddress.Parse(repackaged.Resender));
         msg.To.Add(MailboxAddress.Parse(_config.EmailRecipient));
+        msg.ReplyTo.Add(MailboxAddress.Parse(repackaged.OriginalSenderEmail));
+
+        if (!string.IsNullOrWhiteSpace(repackaged.OriginalMessageId))
+        {
+            var formattedMessageId = repackaged.OriginalMessageId.ToMessageIdHeaderValue();
+            msg.Headers[HeaderId.InReplyTo] = formattedMessageId;
+            msg.Headers[HeaderId.References] = formattedMessageId;
+        }
+
+        if (repackaged.OriginalDate != default)
+            msg.Headers["X-Original-Date"] = repackaged.OriginalDate.ToString("R");
 
         var builder = new BodyBuilder { HtmlBody = repackaged.HtmlBody };
 

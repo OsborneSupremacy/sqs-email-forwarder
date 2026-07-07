@@ -32,5 +32,15 @@ internal static partial class StringExtensions
             var fileName = NonAlphaNumericRegex().Replace(emailAddress, string.Empty);
             return fileName.Length > 50 ? fileName[..50] : fileName;
         }
+
+        public string ToMessageIdHeaderValue()
+        {
+            var hasLeadingBracket = emailAddress.StartsWith('<');
+            var hasTrailingBracket = emailAddress.EndsWith('>');
+
+            return hasLeadingBracket && hasTrailingBracket
+                ? emailAddress
+                : $"<{emailAddress}>";
+        }
     }
 }

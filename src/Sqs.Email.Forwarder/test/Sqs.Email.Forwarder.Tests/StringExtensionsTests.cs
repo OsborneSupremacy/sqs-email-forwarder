@@ -137,6 +137,21 @@ public class StringExtensionsTests
 		result.Length.Should().Be(50);
 		result.Should().Be("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWX");
 	}
+
+	[Theory]
+	[InlineData("abc123@example.com", "<abc123@example.com>")]
+	[InlineData("<abc123@example.com>", "<abc123@example.com>")]
+	[InlineData("<abc123@example.com", "<<abc123@example.com>")]
+	[InlineData("abc123@example.com>", "<abc123@example.com>>")]
+	[InlineData("message-id", "<message-id>")]
+	public void ToMessageIdHeaderValue_StringValue_IsWrappedWithAngleBracketsWhenNeeded(string input, string expectedOutput)
+	{
+		// Act
+		var result = input.ToMessageIdHeaderValue();
+
+		// Assert
+		result.Should().Be(expectedOutput);
+	}
 }
 
 public class GetEmailLocalPartWhenInvalidEmailAddressData : TheoryData<string>

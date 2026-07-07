@@ -16,4 +16,10 @@ internal record RepackagedEmailInfo
     public required byte[] RawEmail { get; init; }
 
     public required string Resender { get; init; }
+
+    public required string OriginalSenderEmail { get; init; }
+
+    public required string OriginalMessageId { get; init; }
+
+    public required DateTimeOffset OriginalDate { get; init; }
 }
