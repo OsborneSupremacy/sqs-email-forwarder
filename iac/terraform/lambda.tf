@@ -1,3 +1,6 @@
+locals {
+  publish_zip_path  = "../../src/Sqs.Email.Forwarder/bin/Sqs.Email.Forwarder.zip"
+}
 
 resource "aws_lambda_function" "forwarder_lambda" {
   function_name    = "sqs-email-forwarder-lambda"
@@ -7,8 +10,8 @@ resource "aws_lambda_function" "forwarder_lambda" {
   architectures    = ["arm64"]
   memory_size      = 256
   timeout          = 300
-  filename         = data.archive_file.lambda_function.output_path
-  source_code_hash = data.archive_file.lambda_function.output_base64sha256
+  filename         = local.publish_zip_path
+  source_code_hash = filebase64sha256(local.publish_zip_path)
   role             = aws_iam_role.lambda_role.arn
   environment {
     variables = {
