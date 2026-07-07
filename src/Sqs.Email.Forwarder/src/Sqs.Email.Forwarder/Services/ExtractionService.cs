@@ -27,25 +27,14 @@ internal class ExtractionService : IExtractionService
 
     public string ExtractBody(MimeMessage mailObject)
     {
-        switch (mailObject.Body)
-        {
-            // Try to get plain text, fallback to HTML
-            case Multipart multipart:
-            {
-                foreach (var part in multipart)
-                    if (part is TextPart { IsPlain: true } textPart)
-                        return textPart.Text;
+        if (!string.IsNullOrWhiteSpace(mailObject.HtmlBody))
+            return mailObject.HtmlBody;
 
-                foreach (var part in multipart)
-                    if (part is TextPart { IsHtml: true } textPart)
-                        return textPart.Text;
+        if (string.IsNullOrWhiteSpace(mailObject.TextBody))
+            return "<p>(No readable message body found)</p>";
 
-                break;
-            }
-            case TextPart text:
-                return text.Text;
-        }
-        return "(No readable message body found)";
+        var encoded = WebUtility.HtmlEncode(mailObject.TextBody);
+        return encoded.Replace("\r\n", "<br />").Replace("\n", "<br />");
     }
 
     public MailboxInfo ExtractSenderInfo(InternetAddressList senderList)

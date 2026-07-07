@@ -58,7 +58,7 @@ internal class EmailTransformer : IEmailTransformer
                            <strong>Date:</strong> {mailObject.Date}<br />
                            <strong>Subject:</strong> {subjectOriginal}</p>
                         <hr>
-                        <pre style="font-family: sans-serif; white-space: pre-wrap;">{extractedBody}</pre>
+                            <div style="font-family: sans-serif;">{extractedBody}</div>
                         <hr>
                         <p>Original message archived at <a href="{receivedEmailInfo.Url}">{receivedEmailInfo.Url}</a></p>
                         </body></html>
