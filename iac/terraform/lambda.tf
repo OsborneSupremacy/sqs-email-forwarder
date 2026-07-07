@@ -1,5 +1,5 @@
 locals {
-  publish_zip_path  = "../../src/Sqs.Email.Forwarder/bin/Sqs.Email.Forwarder.zip"
+  publish_zip_path  = "${path.module}/../../src/Sqs.Email.Forwarder/src/Sqs.Email.Forwarder/bin/Sqs.Email.Forwarder.zip"
 }
 
 resource "aws_lambda_function" "forwarder_lambda" {
