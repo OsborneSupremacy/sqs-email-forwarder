@@ -49,6 +49,7 @@ internal static class ServiceProviderBuilder
         internal IServiceCollection AddBusinessServices() =>
             services
                 .AddSingleton<IEmailSender, EmailSender>()
+                .AddSingleton<EmailMimeComposer>()
                 .AddSingleton<IEmailTransformer, EmailTransformer>()
                 .AddSingleton<IExtractionService, ExtractionService>()
                 .AddSingleton<IProcessor, Processor>();

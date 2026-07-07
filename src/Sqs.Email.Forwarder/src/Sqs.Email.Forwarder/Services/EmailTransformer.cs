@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using MimeKit;
 
 namespace Sqs.Email.Forwarder.Services;
@@ -9,16 +8,16 @@ internal class EmailTransformer : IEmailTransformer
 
     private readonly IExtractionService  _extractionService;
 
-    private readonly Config _config;
+    private readonly EmailMimeComposer _emailMimeComposer;
 
     public EmailTransformer(
         ILogger<EmailTransformer> logger,
-        Config config,
+        EmailMimeComposer emailMimeComposer,
         IExtractionService extractionService
         )
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _config = config ?? throw new ArgumentNullException(nameof(config));
+        _emailMimeComposer = emailMimeComposer ?? throw new ArgumentNullException(nameof(emailMimeComposer));
         _extractionService = extractionService ?? throw new ArgumentNullException(nameof(extractionService));
     }
 
@@ -29,7 +28,7 @@ internal class EmailTransformer : IEmailTransformer
 
         var repackaged = RepackagedEmail(receivedEmailInfo, mailObject);
 
-        return MimeEncodeEmail(repackaged);
+        return _emailMimeComposer.Compose(repackaged);
     }
 
     private async Task<MimeMessage> GetMailObjectAsync(ReceivedEmailInfo receivedEmailInfo)
@@ -47,30 +46,8 @@ internal class EmailTransformer : IEmailTransformer
         var sender = _extractionService.ExtractSenderInfo(mailObject.From);
         var recipient = _extractionService.ExtractRelevantRecipientInfo(mailObject.To, receivedEmailInfo.Domain);
 
-        var subject = $"[{sender.FriendlyName}]➡️[{recipient.LocalPart}] {subjectOriginal}";
-
-        var extractedBody = _extractionService.ExtractBody(mailObject);
-
-        var bodyHtml = $"""
-                        <html>
-                            <head>
-                                <meta charset="utf-8" />
-                            </head>
-                            <body>
-                                <p><strong>Forwarded message:</strong></p>
-                                <p>
-                                    <strong>From:</strong> {sender.FriendlyName} | {sender.EmailAddress}<br />
-                                    <strong>To:</strong> {mailObject.To}<br />
-                                    <strong>Date:</strong> {mailObject.Date}<br />
-                                    <strong>Subject:</strong> {subjectOriginal}
-                                </p>
-                                <hr>
-                                    <div style="font-family: sans-serif;">{extractedBody}</div>
-                                <hr>
-                                <p>Original message archived at <a href="{receivedEmailInfo.Url}">{receivedEmailInfo.Url}</a></p>
-                            </body>
-                        </html>
-                        """;
+        var subject = BuildForwardSubject(subjectOriginal, sender, recipient);
+        var bodyHtml = BuildForwardHtmlBody(receivedEmailInfo, mailObject, sender, subjectOriginal);
 
         return new RepackagedEmailInfo
         {
@@ -86,61 +63,33 @@ internal class EmailTransformer : IEmailTransformer
         };
     }
 
-    /// <summary>
-    /// Sending attachments using SES requires MIME message construction. I don't like it.
-    ///
-    /// https://docs.aws.amazon.com/ses/latest/dg/attachments.html
-    /// </summary>
-    /// <param name="repackaged"></param>
-    /// <returns></returns>
-    [SuppressMessage("Performance", "CA1865:Use char overload")]
-    private MimeEncodedEmailInfo MimeEncodeEmail(RepackagedEmailInfo repackaged)
+    private static string BuildForwardSubject(string subjectOriginal, MailboxInfo sender, MailboxInfo recipient)
+        => $"[{sender.FriendlyName}]➡️[{recipient.LocalPart}] {subjectOriginal}";
+
+    private string BuildForwardHtmlBody(ReceivedEmailInfo receivedEmailInfo, MimeMessage mailObject, MailboxInfo sender, string subjectOriginal)
     {
-        using var msg = new MimeMessage();
-        msg.Subject = repackaged.Subject;
-        msg.From.Add(MailboxAddress.Parse(repackaged.Resender));
-        msg.To.Add(MailboxAddress.Parse(_config.EmailRecipient));
-        msg.ReplyTo.Add(MailboxAddress.Parse(repackaged.OriginalSenderEmail));
+        var extractedBody = _extractionService.ExtractBody(mailObject);
 
-        if (!string.IsNullOrWhiteSpace(repackaged.OriginalMessageId))
-        {
-            var formattedMessageId = repackaged.OriginalMessageId.ToMessageIdHeaderValue();
-            msg.Headers[HeaderId.InReplyTo] = formattedMessageId;
-            msg.Headers[HeaderId.References] = formattedMessageId;
-        }
-
-        if (repackaged.OriginalDate != default)
-            msg.Headers["X-Original-Date"] = repackaged.OriginalDate.ToString("R");
-
-        var htmlPart = new TextPart("html")
-        {
-            Text = repackaged.HtmlBody,
-            ContentTransferEncoding = ContentEncoding.QuotedPrintable
-        };
-        htmlPart.ContentType.Charset = "utf-8";
-
-        // Attach original .eml as a separate MIME part to preserve the source message.
-        var filename = repackaged.SubjectOriginal.ToSesAttachmentSafeFileName();
-        var attachmentPart = new MimePart("message", "rfc822")
-        {
-            FileName = $"{filename}.eml",
-            Content = new MimeContent(new MemoryStream(repackaged.RawEmail), ContentEncoding.Default),
-            ContentDisposition = new ContentDisposition(ContentDisposition.Attachment)
-        };
-
-        var mixed = new Multipart("mixed")
-        {
-            htmlPart,
-            attachmentPart
-        };
-
-        msg.Body = mixed;
-
-        return new MimeEncodedEmailInfo
-        {
-            MessageId = repackaged.MessageId,
-            Resender = repackaged.Resender,
-            MimeEncodedEmail = msg.ToString()
-        };
+        return $"""
+               <html>
+                   <head>
+                       <meta charset="utf-8" />
+                   </head>
+                   <body>
+                       <p><strong>Forwarded message:</strong></p>
+                       <p>
+                           <strong>From:</strong> {sender.FriendlyName} | {sender.EmailAddress}<br />
+                           <strong>To:</strong> {mailObject.To}<br />
+                           <strong>Date:</strong> {mailObject.Date}<br />
+                           <strong>Subject:</strong> {subjectOriginal}
+                       </p>
+                       <hr>
+                           <div style="font-family: sans-serif;">{extractedBody}</div>
+                       <hr>
+                       <p>Original message archived at <a href="{receivedEmailInfo.Url}">{receivedEmailInfo.Url}</a></p>
+                   </body>
+               </html>
+               """;
     }
+
 }
