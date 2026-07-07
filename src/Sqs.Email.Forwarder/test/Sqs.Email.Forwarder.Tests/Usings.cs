@@ -8,4 +8,5 @@ global using Sqs.Email.Forwarder.Abstractions;
 global using Sqs.Email.Forwarder.Extensions;
 global using Sqs.Email.Forwarder.Models;
 global using Sqs.Email.Forwarder.Providers;
+global using Sqs.Email.Forwarder.Services;
 global using Xunit;

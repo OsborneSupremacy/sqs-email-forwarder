@@ -1,5 +1,4 @@
 using Amazon.S3.Model;
-using Sqs.Email.Forwarder.Services;
 
 namespace Sqs.Email.Forwarder.Tests;
 
@@ -21,7 +20,7 @@ public class EmailProviderTests
     public async Task GetReceivedEmailAsync_GivenNonExistentMessage_ThrowsException()
     {
         // arrange
-        var messageId = "does-not-exist";
+        const string messageId = "does-not-exist";
 
         // act
         var result = async () => {
@@ -36,7 +35,7 @@ public class EmailProviderTests
     public async Task GetReceivedEmailAsync_GivenExistingMessage_ReturnsReceivedEmail()
     {
         // arrange
-        var messageId = "plain-text-email";
+        const string messageId = "plain-text-email";
 
         // act
         var result = await _sut.GetReceivedEmailAsync(messageId);
