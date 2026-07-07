@@ -7,14 +7,14 @@ namespace Sqs.Email.Forwarder;
 
 public class Function
 {
-    private readonly Processor _processor;
+    private readonly IProcessor _processor;
 
     // ReSharper disable once ConvertConstructorToMemberInitializers
     public Function()
     {
         _processor = ServiceProviderBuilder
             .Build()
-            .GetRequiredService<Processor>();
+            .GetRequiredService<IProcessor>();
     }
 
     /// <summary>
