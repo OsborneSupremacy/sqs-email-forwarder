@@ -27,8 +27,6 @@
         <PackageReference Include="AWSSDK.SimpleEmail" Version="4.0.100.2" />
     </ItemGroup>
     <ItemGroup>
-        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-            <_Parameter1>Sqs.Email.Forwarder.Tests</_Parameter1>
-        </AssemblyAttribute>
+        <InternalsVisibleTo Include="Sqs.Email.Forwarder.Tests" />
     </ItemGroup>
 </Project>

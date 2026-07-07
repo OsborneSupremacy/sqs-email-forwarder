@@ -1,8 +1,3 @@
-using AutoFixture;
-using FluentAssertions;
-using Sqs.Email.Forwarder.Extensions;
-using Xunit;
-
 namespace Sqs.Email.Forwarder.Tests;
 
 public class StringExtensionsTests
