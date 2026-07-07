@@ -52,17 +52,24 @@ internal class EmailTransformer : IEmailTransformer
         var extractedBody = _extractionService.ExtractBody(mailObject);
 
         var bodyHtml = $"""
-                        <html><body>
-                        <p><strong>Forwarded message:</strong></p>
-                        <p><strong>From:</strong> {sender.FriendlyName} | {sender.EmailAddress}<br />
-                           <strong>To:</strong> {mailObject.To}<br />
-                           <strong>Date:</strong> {mailObject.Date}<br />
-                           <strong>Subject:</strong> {subjectOriginal}</p>
-                        <hr>
-                            <div style="font-family: sans-serif;">{extractedBody}</div>
-                        <hr>
-                        <p>Original message archived at <a href="{receivedEmailInfo.Url}">{receivedEmailInfo.Url}</a></p>
-                        </body></html>
+                        <html>
+                            <head>
+                                <meta charset="utf-8" />
+                            </head>
+                            <body>
+                                <p><strong>Forwarded message:</strong></p>
+                                <p>
+                                    <strong>From:</strong> {sender.FriendlyName} | {sender.EmailAddress}<br />
+                                    <strong>To:</strong> {mailObject.To}<br />
+                                    <strong>Date:</strong> {mailObject.Date}<br />
+                                    <strong>Subject:</strong> {subjectOriginal}
+                                </p>
+                                <hr>
+                                    <div style="font-family: sans-serif;">{extractedBody}</div>
+                                <hr>
+                                <p>Original message archived at <a href="{receivedEmailInfo.Url}">{receivedEmailInfo.Url}</a></p>
+                            </body>
+                        </html>
                         """;
 
         return new RepackagedEmailInfo
@@ -105,13 +112,29 @@ internal class EmailTransformer : IEmailTransformer
         if (repackaged.OriginalDate != default)
             msg.Headers["X-Original-Date"] = repackaged.OriginalDate.ToString("R");
 
-        var builder = new BodyBuilder { HtmlBody = repackaged.HtmlBody };
+        var htmlPart = new TextPart("html")
+        {
+            Text = repackaged.HtmlBody,
+            ContentTransferEncoding = ContentEncoding.QuotedPrintable
+        };
+        htmlPart.ContentType.Charset = "utf-8";
 
-        // Attach original .eml
+        // Attach original .eml as a separate MIME part to preserve the source message.
         var filename = repackaged.SubjectOriginal.ToSesAttachmentSafeFileName();
+        var attachmentPart = new MimePart("message", "rfc822")
+        {
+            FileName = $"{filename}.eml",
+            Content = new MimeContent(new MemoryStream(repackaged.RawEmail), ContentEncoding.Default),
+            ContentDisposition = new ContentDisposition(ContentDisposition.Attachment)
+        };
 
-        builder.Attachments.Add($"{filename}.eml", repackaged.RawEmail, new ContentType("message", "rfc822"));
-        msg.Body = builder.ToMessageBody();
+        var mixed = new Multipart("mixed")
+        {
+            htmlPart,
+            attachmentPart
+        };
+
+        msg.Body = mixed;
 
         return new MimeEncodedEmailInfo
         {
