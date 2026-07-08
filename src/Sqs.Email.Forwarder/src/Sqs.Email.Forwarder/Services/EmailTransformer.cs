@@ -81,11 +81,11 @@ internal class EmailTransformer : IEmailTransformer
                           <p><strong>Forwarded message:</strong></p>
                           <p>
                               <strong>From:</strong> {sender.FriendlyName} | {sender.EmailAddress}<br />
-                              <strong>To:</strong> {mailObject.To}<br />
+                              <strong>To:</strong> {mailObject.To.ToDisplayNamesAndEmails()}<br />
                       """);
 
         if (mailObject.Cc.Count > 0)
-            e.AppendLine($"<strong>CC:</strong> {mailObject.Cc}<br />");
+            e.AppendLine($"<strong>CC:</strong> {mailObject.Cc.ToDisplayNamesAndEmails()}<br />");
 
         e.AppendLine($"""
                                   <strong>Date:</strong> {mailObject.Date}<br />

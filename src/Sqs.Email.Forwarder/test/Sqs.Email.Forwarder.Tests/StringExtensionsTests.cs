@@ -152,6 +152,8 @@ public class StringExtensionsTests
 		// Assert
 		result.Should().Be(expectedOutput);
 	}
+
+
 }
 
 public class GetEmailLocalPartWhenInvalidEmailAddressData : TheoryData<string>
