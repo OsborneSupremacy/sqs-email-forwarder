@@ -44,7 +44,8 @@ internal class EmailTransformer : IEmailTransformer
         var subjectOriginal = mailObject.Subject ?? "(no subject)";
 
         var sender = _extractionService.ExtractSenderInfo(mailObject.From);
-        var recipient = _extractionService.ExtractRelevantRecipientInfo(mailObject.To, receivedEmailInfo.Domain);
+        var recipient = _extractionService
+            .ExtractRelevantRecipientInfo(receivedEmailInfo.Domain, mailObject.To, mailObject.Cc, mailObject.Bcc);
 
         var subject = BuildForwardSubject(subjectOriginal, sender, recipient);
         var bodyHtml = BuildForwardHtmlBody(receivedEmailInfo, mailObject, sender, subjectOriginal);
@@ -80,6 +81,7 @@ internal class EmailTransformer : IEmailTransformer
                        <p>
                            <strong>From:</strong> {sender.FriendlyName} | {sender.EmailAddress}<br />
                            <strong>To:</strong> {mailObject.To}<br />
+                           <strong>CC:</strong> {mailObject.Cc}<br />
                            <strong>Date:</strong> {mailObject.Date}<br />
                            <strong>Subject:</strong> {subjectOriginal}
                        </p>

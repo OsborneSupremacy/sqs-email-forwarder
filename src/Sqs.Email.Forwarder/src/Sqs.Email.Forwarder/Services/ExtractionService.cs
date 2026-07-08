@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using MimeKit;
 
 namespace Sqs.Email.Forwarder.Services;
@@ -56,10 +57,16 @@ internal class ExtractionService : IExtractionService
         };
     }
 
-    public MailboxInfo ExtractRelevantRecipientInfo(InternetAddressList recipientList, string domain)
+    public MailboxInfo ExtractRelevantRecipientInfo(string domain, params ImmutableList<InternetAddressList> recipientLists)
     {
-        var recipient = recipientList.Mailboxes
-            .FirstOrDefault(r => r.Address.EndsWith($"@{domain}", StringComparison.OrdinalIgnoreCase));
+        MailboxAddress? recipient = null;
+
+        foreach (var recipientList in recipientLists)
+        {
+            recipient = recipientList.Mailboxes
+                .FirstOrDefault(r => r.Address.EndsWith($"@{domain}", StringComparison.OrdinalIgnoreCase));
+            if(recipient is not null) break;
+        }
 
         var recipientName = recipient?.Name ?? string.Empty;
         var recipientEmail = recipient?.Address ?? $"not-found@{domain}";

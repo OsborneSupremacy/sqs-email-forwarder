@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using MimeKit;
 
 namespace Sqs.Email.Forwarder.Abstractions;
@@ -10,5 +11,6 @@ internal interface IExtractionService
 
     public MailboxInfo ExtractSenderInfo(InternetAddressList senderList);
 
-    public MailboxInfo ExtractRelevantRecipientInfo(InternetAddressList recipientList, string domain);
+    public MailboxInfo ExtractRelevantRecipientInfo(string domain,
+        params ImmutableList<InternetAddressList> recipientLists);
 }
