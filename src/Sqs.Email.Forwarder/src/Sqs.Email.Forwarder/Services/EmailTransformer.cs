@@ -71,27 +71,36 @@ internal class EmailTransformer : IEmailTransformer
     {
         var extractedBody = _extractionService.ExtractBody(mailObject);
 
-        return $"""
-               <html>
-                   <head>
-                       <meta charset="utf-8" />
-                   </head>
-                   <body>
-                       <p><strong>Forwarded message:</strong></p>
-                       <p>
-                           <strong>From:</strong> {sender.FriendlyName} | {sender.EmailAddress}<br />
-                           <strong>To:</strong> {mailObject.To}<br />
-                           <strong>CC:</strong> {mailObject.Cc}<br />
-                           <strong>Date:</strong> {mailObject.Date}<br />
-                           <strong>Subject:</strong> {subjectOriginal}
-                       </p>
-                       <hr>
-                           <div style="font-family: sans-serif;">{extractedBody}</div>
-                       <hr>
-                       <p>Original message archived at <a href="{receivedEmailInfo.Url}">{receivedEmailInfo.Url}</a></p>
-                   </body>
-               </html>
-               """;
-    }
+        var e = new System.Text.StringBuilder();
+        e.AppendLine($"""
+                      <html>
+                      <head>
+                          <meta charset="utf-8" />
+                      </head>
+                      <body>
+                          <p><strong>Forwarded message:</strong></p>
+                          <p>
+                              <strong>From:</strong> {sender.FriendlyName} | {sender.EmailAddress}<br />
+                              <strong>To:</strong> {mailObject.To}<br />
+                      """);
 
+        if (mailObject.Cc.Count > 0)
+            e.AppendLine($"<strong>CC:</strong> {mailObject.Cc}<br />");
+
+        e.AppendLine($"""
+                                  <strong>Date:</strong> {mailObject.Date}<br />
+                                  <strong>Subject:</strong> {subjectOriginal}
+                              </p>
+                              <hr>
+                                  <div style="font-family: sans-serif;">{extractedBody}</div>
+                              <hr>
+                              <p>Original message archived at <a href="{receivedEmailInfo.Url}">{receivedEmailInfo.Url}</a></p>
+                          </body>
+                      </html>
+                      """);
+
+
+
+        return e.ToString();
+    }
 }
