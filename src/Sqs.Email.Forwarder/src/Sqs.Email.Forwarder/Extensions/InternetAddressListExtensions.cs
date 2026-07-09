@@ -21,15 +21,15 @@ internal static class InternetAddressListExtensions
         private static string FormatAddress(InternetAddress address)
             => address switch
             {
-                MailboxAddress mailbox => FormatMailbox(mailbox),
-                GroupAddress group => FormatNamedAddressWithoutMailbox(group.Name),
+                MailboxAddress mailbox => InternetAddressList.FormatMailbox(mailbox),
+                GroupAddress group => InternetAddressList.FormatNamedAddressWithoutMailbox(group.Name),
                 _ => UnknownEmailAddress
             };
 
         private static string FormatMailbox(MailboxAddress mailbox)
         {
             var emailAddress = mailbox.Address?.Trim();
-            var displayName = NormalizeName(mailbox.Name);
+            var displayName = InternetAddressList.NormalizeName(mailbox.Name);
 
             if (string.IsNullOrWhiteSpace(emailAddress))
                 emailAddress = UnknownEmailAddress;
@@ -37,12 +37,15 @@ internal static class InternetAddressListExtensions
             if (string.IsNullOrWhiteSpace(displayName))
                 return emailAddress;
 
+            if(emailAddress.Equals(displayName, StringComparison.OrdinalIgnoreCase))
+                return emailAddress;
+
             return $"{displayName} | {emailAddress}";
         }
 
         private static string FormatNamedAddressWithoutMailbox(string? name)
         {
-            var displayName = NormalizeName(name);
+            var displayName = InternetAddressList.NormalizeName(name);
 
             return string.IsNullOrWhiteSpace(displayName)
                 ? UnknownEmailAddress

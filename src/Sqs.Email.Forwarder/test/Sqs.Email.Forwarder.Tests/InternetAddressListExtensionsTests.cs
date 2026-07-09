@@ -22,6 +22,22 @@ public class InternetAddressListExtensionsTests
     }
 
     [Fact]
+    public void ToDisplayNamesAndEmails_EmailOnly_MergedToOneValue()
+    {
+        // Arrange
+        var addresses = new InternetAddressList
+        {
+            new MailboxAddress("john.doe@example.com", "john.doe@example.com"),
+        };
+
+        // Act
+        var result = addresses.ToDisplayNamesAndEmails();
+
+        // Assert
+        result.Should().Be("john.doe@example.com");
+    }
+
+    [Fact]
     public void ToDisplayNamesAndEmails_NameContainsQuotes_RemovesQuotesFromName()
     {
         // Arrange
