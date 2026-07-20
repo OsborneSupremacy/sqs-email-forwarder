@@ -26,7 +26,7 @@ internal class EmailStager : IEmailStager
         var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
         var localTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, localTimeZone);
 
-        var senderEmail = Uri.EscapeDataString(repackagedEmailInfo.OriginalSenderEmail);
+        var senderEmail = Uri.EscapeDataString(repackagedEmailInfo.SenderEmail);
         var objectKey = $"{localTime:MM/dd/}{senderEmail}/{localTime:HH-mm-}{repackagedEmailInfo.MessageId}.html";
 
         var putRequest = new PutObjectRequest
@@ -59,12 +59,11 @@ internal class EmailStager : IEmailStager
 
         return new StagedEmail
         {
-            OriginalSubject = repackagedEmailInfo.Subject,
-            OriginalSenderEmail = repackagedEmailInfo.OriginalSenderEmail,
-            OriginalRecipientEmail = repackagedEmailInfo.OriginalRecipientEmail,
+            Subject = repackagedEmailInfo.Subject,
+            SenderEmail = repackagedEmailInfo.SenderEmail,
+            RecipientEmail = repackagedEmailInfo.RecipientEmail,
             HasAttachments = repackagedEmailInfo.HasAttachments,
             OriginalDate = repackagedEmailInfo.OriginalDate,
-            OriginalUrl = repackagedEmailInfo.OriginalUrl,
             PresignedUrl = presignedUrl
         };
     }

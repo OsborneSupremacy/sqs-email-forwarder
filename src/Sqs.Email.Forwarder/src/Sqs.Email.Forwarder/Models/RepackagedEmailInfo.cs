@@ -13,9 +13,9 @@ internal record RepackagedEmailInfo
 
     public required string Resender { get; init; }
 
-    public required string OriginalSenderEmail { get; init; }
+    public required string SenderEmail { get; init; }
 
-    public required string OriginalRecipientEmail { get; init; }
+    public required string RecipientEmail { get; init; }
 
     public required bool HasAttachments { get; init; }
 

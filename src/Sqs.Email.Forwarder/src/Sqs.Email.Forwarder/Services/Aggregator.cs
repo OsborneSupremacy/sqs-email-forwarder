@@ -55,9 +55,9 @@ internal class Aggregator : IAggregator
         foreach (var stagedEmail in stagedEmails)
         {
             html.AppendLine("<div style=\"margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #ddd;\">");
-            html.AppendLine($"<h2 style=\"font-size: 18px;\">{Encode(stagedEmail.OriginalSubject)}</h2>");
-            html.AppendLine($"<div><strong>Sender:</strong> {Encode(stagedEmail.OriginalSenderEmail)}</div>");
-            html.AppendLine($"<div><strong>Recipient:</strong> {Encode(stagedEmail.OriginalRecipientEmail)}</div>");
+            html.AppendLine($"<h2 style=\"font-size: 18px;\">{Encode(stagedEmail.Subject)}</h2>");
+            html.AppendLine($"<div><strong>Sender:</strong> {Encode(stagedEmail.SenderEmail)}</div>");
+            html.AppendLine($"<div><strong>Recipient:</strong> {Encode(stagedEmail.RecipientEmail)}</div>");
             html.AppendLine($"<div><strong>Original date:</strong> {Encode(stagedEmail.OriginalDate.ToString("yyyy-MM-dd HH:mm zzz"))}</div>");
             html.AppendLine($"<div><strong>Attachments:</strong> {(stagedEmail.HasAttachments ? "Yes" : "No")}</div>");
             html.AppendLine($"<div style=\"margin-top: 12px;\"><a href=\"{Encode(stagedEmail.PresignedUrl)}\">View staged email</a></div>");
