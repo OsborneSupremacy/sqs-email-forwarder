@@ -51,7 +51,6 @@ internal class EmailTransformer : IEmailTransformer
             MessageId = receivedEmailInfo.MessageId,
             Subject = subjectOriginal,
             HtmlBody = bodyHtml,
-            Resender = receivedEmailInfo.Resender,
             SenderEmail = sender.EmailAddress,
             RecipientEmail = recipient.EmailAddress,
             HasAttachments = mailObject.Attachments.Any(),

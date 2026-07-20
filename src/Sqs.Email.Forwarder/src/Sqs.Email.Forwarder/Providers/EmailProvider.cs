@@ -60,7 +60,6 @@ internal class EmailProvider : IEmailProvider
         return new ReceivedEmailInfo
         {
             MessageId = messageId,
-            Resender = _config.EmailSenders[bucketIndex],
             RawEmail = rawEmail,
             Domain = emailSender.GetEmailDomain(),
             Url = presignedUrl

@@ -11,8 +11,6 @@ internal record RepackagedEmailInfo
 
     public required string HtmlBody { get; init; }
 
-    public required string Resender { get; init; }
-
     public required string SenderEmail { get; init; }
 
     public required string RecipientEmail { get; init; }

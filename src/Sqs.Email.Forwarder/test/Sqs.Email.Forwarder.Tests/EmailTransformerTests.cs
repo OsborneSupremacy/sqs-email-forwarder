@@ -29,7 +29,6 @@ public class EmailTransformerTests
 
         // assert
         result.MessageId.Should().Be(messageId);
-        result.Resender.Should().BeEquivalentTo(receivedEmail.Resender);
         result.HtmlBody.Should().NotBeNullOrWhiteSpace();
     }
 }
