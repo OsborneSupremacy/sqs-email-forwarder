@@ -55,8 +55,7 @@ internal class EmailTransformer : IEmailTransformer
             SenderEmail = sender.EmailAddress,
             RecipientEmail = recipient.EmailAddress,
             HasAttachments = mailObject.Attachments.Any(),
-            OriginalDate = mailObject.Date,
-            OriginalUrl = receivedEmailInfo.Url
+            OriginalDate = mailObject.Date
         };
     }
 

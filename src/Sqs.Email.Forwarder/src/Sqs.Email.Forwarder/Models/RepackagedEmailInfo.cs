@@ -20,6 +20,4 @@ internal record RepackagedEmailInfo
     public required bool HasAttachments { get; init; }
 
     public required DateTimeOffset OriginalDate { get; init; }
-
-    public required string OriginalUrl { get; init; }
 }
