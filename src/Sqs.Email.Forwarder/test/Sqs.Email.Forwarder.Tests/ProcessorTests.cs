@@ -22,6 +22,7 @@ public class ProcessorTests
         // arrange
         SQSEvent.SQSMessage htmlEmailMessage = new()
         {
+            MessageId = "sqs-html-email",
             Body = """
                    {
                      "Type": "Notification",
@@ -35,6 +36,7 @@ public class ProcessorTests
 
         SQSEvent.SQSMessage plainTextEmailMessage = new()
         {
+            MessageId = "sqs-plain-text-email",
             Body = """
                    {
                      "Type": "Notification",
@@ -48,6 +50,7 @@ public class ProcessorTests
 
         SQSEvent.SQSMessage emailWithAttachment = new()
         {
+            MessageId = "sqs-email-with-attachment",
             Body = """
                    {
                      "Type": "Notification",
@@ -66,7 +69,7 @@ public class ProcessorTests
             emailWithAttachment
         ];
 
-        ImmutableList<string> expectedResult = ["html-email", "plain-text-email", "email-with-attachment"];
+        ImmutableList<string> expectedResult = ["sqs-html-email", "sqs-plain-text-email", "sqs-email-with-attachment"];
 
         // act
         var processedMessageIds = await _sut.ProcessMessagesAsync(messages);

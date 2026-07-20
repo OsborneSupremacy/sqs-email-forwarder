@@ -37,6 +37,7 @@ internal class Processor : IProcessor
     public async Task<ImmutableList<string>> ProcessMessagesAsync(ImmutableList<SQSEvent.SQSMessage> messages)
     {
         List<StagedEmail> stagedEmails = [];
+        List<string> processedMessageIds = [];
 
         foreach (var message in messages)
         {
@@ -44,6 +45,7 @@ internal class Processor : IProcessor
             {
                 var stagedEmail = await ProcessMessageAsync(message);
                 stagedEmails.Add(stagedEmail);
+                processedMessageIds.Add(message.MessageId);
             }
             catch (Exception ex)
             {
@@ -55,7 +57,7 @@ internal class Processor : IProcessor
             .EmailAggregateAsync(stagedEmails.ToImmutableList())
             .ConfigureAwait(false);
 
-        return stagedEmails.Select(e => e.MessageId).ToImmutableList();
+        return processedMessageIds.ToImmutableList();
     }
 
     private async Task<StagedEmail> ProcessMessageAsync(SQSEvent.SQSMessage message)
