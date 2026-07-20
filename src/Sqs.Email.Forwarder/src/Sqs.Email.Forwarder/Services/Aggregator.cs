@@ -20,14 +20,14 @@ internal class Aggregator : IAggregator
 
     public async Task EmailAggregateAsync(ImmutableList<StagedEmail> stagedEmails)
     {
-        if (stagedEmails.Count == 0)
-            return;
+        var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
+        var localTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, localTimeZone);
 
         var messageId = Guid.NewGuid().ToString("N");
         var resender = _config.EmailSenders[0];
 
         using var message = new MimeMessage();
-        message.Subject = $"Email digest ({stagedEmails.Count})";
+        message.Subject = $"Email Digest for {localTime:yyyy-MM-dd hh:mm tt} ({stagedEmails.Count})";
         message.From.Add(MailboxAddress.Parse(resender));
         message.To.Add(MailboxAddress.Parse(_config.EmailRecipient));
         message.Body = new TextPart("html")
@@ -50,7 +50,7 @@ internal class Aggregator : IAggregator
     {
         var html = new StringBuilder();
         html.AppendLine("<html><head><meta charset=\"utf-8\" /></head><body style=\"font-family: sans-serif;\">");
-        html.AppendLine($"<h1>Staged emails ({stagedEmails.Count})</h1>");
+        html.AppendLine($"<h1>Received emails ({stagedEmails.Count})</h1>");
 
         foreach (var stagedEmail in stagedEmails)
         {
