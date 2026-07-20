@@ -8,23 +8,13 @@ internal class EmailTransformer : IEmailTransformer
 
     private readonly IExtractionService  _extractionService;
 
-    private readonly EmailMimeComposer _emailMimeComposer;
-
     public EmailTransformer(
         ILogger<EmailTransformer> logger,
-        EmailMimeComposer emailMimeComposer,
         IExtractionService extractionService
         )
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _emailMimeComposer = emailMimeComposer ?? throw new ArgumentNullException(nameof(emailMimeComposer));
         _extractionService = extractionService ?? throw new ArgumentNullException(nameof(extractionService));
-    }
-
-    public async Task<MimeEncodedEmailInfo> RepackageAndTransformEmailAsync(ReceivedEmailInfo receivedEmailInfo)
-    {
-        var repackaged = await RepackageEmailAsync(receivedEmailInfo);
-        return _emailMimeComposer.Compose(repackaged);
     }
 
     public async Task<RepackagedEmailInfo> RepackageEmailAsync(ReceivedEmailInfo receivedEmailInfo)
@@ -107,8 +97,6 @@ internal class EmailTransformer : IEmailTransformer
                           </body>
                       </html>
                       """);
-
-
 
         return e.ToString();
     }

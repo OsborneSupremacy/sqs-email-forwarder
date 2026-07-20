@@ -25,11 +25,11 @@ public class EmailTransformerTests
         var receivedEmail = await _emailProvider.GetReceivedEmailAsync(messageId);
 
         // act
-        var result = await _sut.RepackageAndTransformEmailAsync(receivedEmail);
+        var result = await _sut.RepackageEmailAsync(receivedEmail);
 
         // assert
         result.MessageId.Should().Be(messageId);
         result.Resender.Should().BeEquivalentTo(receivedEmail.Resender);
-        result.MimeEncodedEmail.Should().NotBeNullOrWhiteSpace();
+        result.HtmlBody.Should().NotBeNullOrWhiteSpace();
     }
 }
