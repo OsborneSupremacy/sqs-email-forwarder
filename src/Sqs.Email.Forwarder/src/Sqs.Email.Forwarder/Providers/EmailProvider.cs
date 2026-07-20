@@ -38,13 +38,22 @@ internal class EmailProvider : IEmailProvider
         var rawEmail = ms.ToArray();
 
         var emailSender = _config.EmailSenders[bucketIndex];
+        var downloadFileName = messageId.ToSesAttachmentSafeFileName();
+        if (string.IsNullOrWhiteSpace(downloadFileName))
+            downloadFileName = "email";
+
         var presignedUrl = await _s3Client
             .GetPreSignedURLAsync(new GetPreSignedUrlRequest
             {
                 BucketName = bucket,
                 Key = messageId,
                 Verb = HttpVerb.GET,
-                Expires = DateTime.UtcNow.AddDays(7)
+                Expires = DateTime.UtcNow.AddDays(7),
+                ResponseHeaderOverrides = new ResponseHeaderOverrides
+                {
+                    ContentType = "message/rfc822",
+                    ContentDisposition = $"attachment; filename=\"{downloadFileName}.eml\""
+                }
             })
             .ConfigureAwait(false);
 

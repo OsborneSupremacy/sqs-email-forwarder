@@ -94,7 +94,7 @@ internal class EmailTransformer : IEmailTransformer
                               <hr>
                                   <div style="font-family: sans-serif;">{extractedBody}</div>
                               <hr>
-                              <p>Original message archived at <a href="{receivedEmailInfo.Url}">{receivedEmailInfo.Url}</a></p>
+                              <p>Original message archived <a href="{receivedEmailInfo.Url}">here</a>.</p>
                           </body>
                       </html>
                       """);
