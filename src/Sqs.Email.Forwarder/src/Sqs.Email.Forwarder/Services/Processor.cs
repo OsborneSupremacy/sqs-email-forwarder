@@ -43,8 +43,7 @@ internal class Processor : IProcessor
         {
             try
             {
-                var stagedEmail = await ProcessMessageAsync(message);
-                stagedEmails.Add(stagedEmail);
+                stagedEmails.Add(await ProcessMessageAsync(message));
                 processedMessageIds.Add(message.MessageId);
             }
             catch (Exception ex)

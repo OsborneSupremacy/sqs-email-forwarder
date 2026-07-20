@@ -51,7 +51,6 @@ internal class EmailTransformer : IEmailTransformer
             MessageId = receivedEmailInfo.MessageId,
             Subject = subjectOriginal,
             HtmlBody = bodyHtml,
-            RawEmail = receivedEmailInfo.RawEmail,
             Resender = receivedEmailInfo.Resender,
             OriginalSenderEmail = sender.EmailAddress,
             OriginalRecipientEmail = recipient.EmailAddress,

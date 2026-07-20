@@ -59,7 +59,6 @@ internal class EmailStager : IEmailStager
 
         return new StagedEmail
         {
-            MessageId = repackagedEmailInfo.MessageId,
             OriginalSubject = repackagedEmailInfo.Subject,
             OriginalSenderEmail = repackagedEmailInfo.OriginalSenderEmail,
             OriginalRecipientEmail = repackagedEmailInfo.OriginalRecipientEmail,
