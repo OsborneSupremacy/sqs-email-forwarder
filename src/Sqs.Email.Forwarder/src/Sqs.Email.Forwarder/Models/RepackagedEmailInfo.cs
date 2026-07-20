@@ -19,7 +19,11 @@ internal record RepackagedEmailInfo
 
     public required string OriginalSenderEmail { get; init; }
 
+    public required string OriginalRecipientEmail { get; init; }
+
     public required string OriginalMessageId { get; init; }
 
     public required DateTimeOffset OriginalDate { get; init; }
+
+    public required string OriginalUrl { get; init; }
 }

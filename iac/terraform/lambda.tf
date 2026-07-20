@@ -1,5 +1,5 @@
 locals {
-  publish_zip_path  = "${path.module}/../../src/Sqs.Email.Forwarder/src/Sqs.Email.Forwarder/bin/Sqs.Email.Forwarder.zip"
+  publish_zip_path = "${path.module}/../../src/Sqs.Email.Forwarder/src/Sqs.Email.Forwarder/bin/Sqs.Email.Forwarder.zip"
 }
 
 resource "aws_lambda_function" "forwarder_lambda" {
@@ -17,7 +17,8 @@ resource "aws_lambda_function" "forwarder_lambda" {
     variables = {
       "MAIL_S3_BUCKETS" = join(",", local.s3_bucket_names)
       "MAIL_SENDERS"    = join(",", local.mail_senders),
-      "MAIL_RECIPIENT"  = local.mail_recipient
+      "MAIL_RECIPIENT"  = local.mail_recipient,
+      "STAGING_BUCKET"  = local.staging_bucket_name
     }
   }
 }

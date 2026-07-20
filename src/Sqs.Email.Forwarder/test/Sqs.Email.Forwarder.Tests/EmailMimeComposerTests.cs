@@ -14,7 +14,8 @@ public class EmailMimeComposerTests
             MailBuckets = ["bucket"],
             EmailSenders = ["sender@example.com"],
             AwsRegion = "us-east-1",
-            EmailRecipient = "final@example.com"
+            EmailRecipient = "final@example.com",
+            StagingBucket = "bro-ses-inbox-staged"
         };
 
         var sut = new EmailMimeComposer(config);
@@ -27,8 +28,10 @@ public class EmailMimeComposerTests
             RawEmail = "From: original@example.com\r\nTo: final@example.com\r\nSubject: Original Subject\r\n\r\nBody"u8.ToArray(),
             Resender = "resender@example.com",
             OriginalSenderEmail = "original@example.com",
+            OriginalRecipientEmail = "recipient@example.com",
             OriginalMessageId = "original-message-id",
-            OriginalDate = new DateTimeOffset(2026, 07, 07, 12, 34, 56, TimeSpan.Zero)
+            OriginalDate = new DateTimeOffset(2026, 07, 07, 12, 34, 56, TimeSpan.Zero),
+            OriginalUrl = string.Empty
         };
 
         // act

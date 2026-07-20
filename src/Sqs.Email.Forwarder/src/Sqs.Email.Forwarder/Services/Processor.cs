@@ -1,5 +1,8 @@
 namespace Sqs.Email.Forwarder.Services;
 
+/// <summary>
+/// <inheritdoc/>
+/// </summary>
 internal class Processor : IProcessor
 {
     private readonly ILogger<Processor> _logger;
@@ -10,24 +13,52 @@ internal class Processor : IProcessor
 
     private readonly IEmailTransformer _emailTransformer;
 
-    private readonly IEmailSender _emailSender;
+    private readonly IAggregator _aggregator;
+
+    private readonly IEmailStager _emailStager;
 
     public Processor(
         ILogger<Processor> logger,
         IExtractionService extractionService,
         IEmailProvider emailProvider,
         IEmailTransformer emailTransformer,
-        IEmailSender emailSender
+        IAggregator aggregator,
+        IEmailStager emailStager
         )
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _extractionService = extractionService ?? throw new ArgumentNullException(nameof(extractionService));
         _emailProvider = emailProvider ?? throw new ArgumentNullException(nameof(emailProvider));
         _emailTransformer = emailTransformer ?? throw new ArgumentNullException(nameof(emailTransformer));
-        _emailSender = emailSender ?? throw new ArgumentNullException(nameof(emailSender));
+        _aggregator = aggregator ?? throw new ArgumentNullException(nameof(aggregator));
+        _emailStager = emailStager ?? throw new ArgumentNullException(nameof(emailStager));
     }
 
-    public async Task ProcessMessageAsync(SQSEvent.SQSMessage message)
+    public async Task<ImmutableList<string>> ProcessMessagesAsync(ImmutableList<SQSEvent.SQSMessage> messages)
+    {
+        List<StagedEmail> stagedEmails = [];
+
+        foreach (var message in messages)
+        {
+            try
+            {
+                var stagedEmail = await ProcessMessageAsync(message);
+                stagedEmails.Add(stagedEmail);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing message {MessageId}: {ErrorMessage}", message.MessageId, ex.Message);
+            }
+        }
+
+        await _aggregator
+            .EmailAggregateAsync(stagedEmails.ToImmutableList())
+            .ConfigureAwait(false);
+
+        return stagedEmails.Select(e => e.MessageId).ToImmutableList();
+    }
+
+    private async Task<StagedEmail> ProcessMessageAsync(SQSEvent.SQSMessage message)
     {
         var messageId = _extractionService.ExtractSesMessageId(message.Body);
 
@@ -41,8 +72,8 @@ internal class Processor : IProcessor
             .RepackageEmailAsync(receivedEmail)
             .ConfigureAwait(false);
 
-        await _emailSender
-            .SendEmailAsync(repackagedEmail)
-            .ConfigureAwait(false);;
+        return await _emailStager
+            .StageAsync(repackagedEmail)
+            .ConfigureAwait(false);
     }
 }

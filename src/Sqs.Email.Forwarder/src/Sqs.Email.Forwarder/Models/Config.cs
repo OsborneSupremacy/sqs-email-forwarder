@@ -9,4 +9,6 @@ internal record Config
     public required string AwsRegion { get; init; }
 
     public required string EmailRecipient { get; init; }
+
+    public required string StagingBucket { get; init; }
 }

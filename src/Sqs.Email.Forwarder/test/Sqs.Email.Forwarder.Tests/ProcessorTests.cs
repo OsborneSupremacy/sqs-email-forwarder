@@ -16,31 +16,47 @@ public class ProcessorTests
         _sut = serviceProvider.GetRequiredService<IProcessor>();
     }
 
-    [Theory]
-    [InlineData("plain-text-email")]
-    [InlineData("html-email")]
-    public async Task ProcessMessageAsync_GivenValidMessage_ShouldForwardEmail(string messageId)
+    [Fact]
+    public async Task ProcessMessageAsync_GivenValidMessage_ShouldForwardEmail()
     {
         // arrange
-        SQSEvent.SQSMessage message = new()
+        SQSEvent.SQSMessage htmlEmailMessage = new()
         {
             Body = """
                    {
                      "Type": "Notification",
                      "MessageId": "sns-envelope-id",
                      "TopicArn": "arn:aws:sns:us-east-1:123456789012:ses-topic",
-                     "Message": "{\"notificationType\":\"Received\",\"mail\":{\"messageId\":\"<MESSAGE-ID>\"}}",
+                     "Message": "{\"notificationType\":\"Received\",\"mail\":{\"messageId\":\"html-email\"}}",
                      "Timestamp": "2026-07-06T12:00:00.000Z"
                    }
-                   """.Replace("<MESSAGE-ID>", messageId)
+                   """
         };
+
+        SQSEvent.SQSMessage plainTextEmailMessage = new()
+        {
+            Body = """
+                   {
+                     "Type": "Notification",
+                     "MessageId": "sns-envelope-id",
+                     "TopicArn": "arn:aws:sns:us-east-1:123456789012:ses-topic",
+                     "Message": "{\"notificationType\":\"Received\",\"mail\":{\"messageId\":\"plain-text-email\"}}",
+                     "Timestamp": "2026-07-06T12:00:00.000Z"
+                   }
+                   """
+        };
+
+        ImmutableList<SQSEvent.SQSMessage> messages = [
+            htmlEmailMessage,
+            plainTextEmailMessage
+        ];
+
+        ImmutableList<string> expectedResult = ["html-email", "plain-text-email"];
 
         // act
-        var result = async () => {
-            await _sut.ProcessMessageAsync(message);
-        };
+        var processedMessageIds = await _sut.ProcessMessagesAsync(messages);
 
-        // asset
-        await result.Should().NotThrowAsync();
+        // assert
+        processedMessageIds.Should().BeEquivalentTo(expectedResult);
     }
 }

@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using MimeKit;
 
 namespace Sqs.Email.Forwarder.Abstractions;

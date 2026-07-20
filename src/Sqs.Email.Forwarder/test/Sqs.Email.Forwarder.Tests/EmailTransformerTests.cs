@@ -25,7 +25,7 @@ public class EmailTransformerTests
         var receivedEmail = await _emailProvider.GetReceivedEmailAsync(messageId);
 
         // act
-        var result = await _sut.RepackageEmailAsync(receivedEmail);
+        var result = await _sut.RepackageAndTransformEmailAsync(receivedEmail);
 
         // assert
         result.MessageId.Should().Be(messageId);

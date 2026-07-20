@@ -1,4 +1,6 @@
 // Global using directives
+
+global using System.Collections.Immutable;
 global using System.Net;
 global using AutoFixture;
 global using dotenv.net;

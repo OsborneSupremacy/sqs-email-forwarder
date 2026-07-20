@@ -1,3 +1,4 @@
+global using System.Collections.Immutable;
 global using Amazon;
 global using Amazon.Lambda.Core;
 global using Amazon.Lambda.SQSEvents;

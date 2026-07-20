@@ -24,11 +24,18 @@ public class Function
     /// <param name="sqsEvent">The event for the Lambda function handler to process.</param>
     /// <param name="context">The ILambdaContext that provides methods for logging and describing the Lambda environment.</param>
     /// <returns></returns>
-    public async Task FunctionHandler(SQSEvent sqsEvent, ILambdaContext context)
+    public async Task<SQSBatchResponse> FunctionHandler(SQSEvent sqsEvent, ILambdaContext context)
     {
-        // do not parallelize. Messages are read into memory. We don't want to read too many at once.
-        foreach (var message in sqsEvent.Records)
-            await _processor.ProcessMessageAsync(message);
+        var processedMessageIds =
+            await _processor.ProcessMessagesAsync(sqsEvent.Records.ToImmutableList());
+
+        return new SQSBatchResponse
+        {
+            BatchItemFailures = sqsEvent.Records
+                .Where(record => !processedMessageIds.Contains(record.MessageId))
+                .Select(record => new SQSBatchResponse.BatchItemFailure { ItemIdentifier = record.MessageId })
+                .ToList()
+        };
     }
 
 

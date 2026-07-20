@@ -14,5 +14,7 @@ locals {
     aws_s3_bucket.bro-ses-inbox-osbornesupremacy.bucket,
     aws_s3_bucket.bro-ses-inbox-silverconcord.bucket
   ]
+
+  staging_bucket_name = aws_s3_bucket.staging_bucket.bucket
 }
 

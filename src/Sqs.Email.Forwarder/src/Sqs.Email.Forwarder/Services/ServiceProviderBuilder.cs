@@ -41,7 +41,8 @@ internal static class ServiceProviderBuilder
                 MailBuckets = mailBuckets,
                 EmailSenders = emailSenders,
                 AwsRegion = EnvReader.GetStringValue("AWS_REGION"),
-                EmailRecipient = EnvReader.GetStringValue("MAIL_RECIPIENT")
+                EmailRecipient = EnvReader.GetStringValue("MAIL_RECIPIENT"),
+                StagingBucket = EnvReader.GetStringValue("STAGING_BUCKET")
             };
             return services.AddSingleton(config);
         }
@@ -52,6 +53,8 @@ internal static class ServiceProviderBuilder
                 .AddSingleton<EmailMimeComposer>()
                 .AddSingleton<IEmailTransformer, EmailTransformer>()
                 .AddSingleton<IExtractionService, ExtractionService>()
+                .AddSingleton<IEmailStager, EmailStager>()
+                .AddSingleton<IAggregator, Aggregator>()
                 .AddSingleton<IProcessor, Processor>();
 
         internal IServiceCollection AddProviders() =>

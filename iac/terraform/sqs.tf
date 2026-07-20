@@ -15,8 +15,9 @@ resource "aws_lambda_event_source_mapping" "sqs_trigger" {
   event_source_arn                   = each.value
   function_name                      = aws_lambda_function.forwarder_lambda.arn
   batch_size                         = 10
-  maximum_batching_window_in_seconds = 30
+  maximum_batching_window_in_seconds = 60
   enabled                            = true
+  function_response_types            = ["ReportBatchItemFailures"]
 }
 
 resource "aws_sqs_queue_policy" "osbornesupremacy_inbox_policy" {

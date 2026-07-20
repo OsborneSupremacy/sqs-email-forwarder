@@ -21,14 +21,20 @@ internal class EmailTransformer : IEmailTransformer
         _extractionService = extractionService ?? throw new ArgumentNullException(nameof(extractionService));
     }
 
-    public async Task<MimeEncodedEmailInfo> RepackageEmailAsync(ReceivedEmailInfo receivedEmailInfo)
+    public async Task<MimeEncodedEmailInfo> RepackageAndTransformEmailAsync(ReceivedEmailInfo receivedEmailInfo)
+    {
+        var repackaged = await RepackageEmailAsync(receivedEmailInfo);
+        return _emailMimeComposer.Compose(repackaged);
+    }
+
+    public async Task<RepackagedEmailInfo> RepackageEmailAsync(ReceivedEmailInfo receivedEmailInfo)
     {
         using var mailObject = await GetMailObjectAsync(receivedEmailInfo)
             .ConfigureAwait(false);
 
-        var repackaged = RepackagedEmail(receivedEmailInfo, mailObject);
+        var repackaged = RepackageEmail(receivedEmailInfo, mailObject);
 
-        return _emailMimeComposer.Compose(repackaged);
+        return repackaged;
     }
 
     private async Task<MimeMessage> GetMailObjectAsync(ReceivedEmailInfo receivedEmailInfo)
@@ -39,7 +45,7 @@ internal class EmailTransformer : IEmailTransformer
             .ConfigureAwait(false);
     }
 
-    private RepackagedEmailInfo RepackagedEmail(ReceivedEmailInfo receivedEmailInfo, MimeMessage mailObject)
+    private RepackagedEmailInfo RepackageEmail(ReceivedEmailInfo receivedEmailInfo, MimeMessage mailObject)
     {
         var subjectOriginal = mailObject.Subject ?? "(no subject)";
 
@@ -59,8 +65,10 @@ internal class EmailTransformer : IEmailTransformer
             RawEmail = receivedEmailInfo.RawEmail,
             Resender = receivedEmailInfo.Resender,
             OriginalSenderEmail = sender.EmailAddress,
+            OriginalRecipientEmail = recipient.EmailAddress,
             OriginalMessageId = mailObject.MessageId ?? string.Empty,
-            OriginalDate = mailObject.Date
+            OriginalDate = mailObject.Date,
+            OriginalUrl = receivedEmailInfo.Url
         };
     }
 

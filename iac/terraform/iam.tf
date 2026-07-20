@@ -39,6 +39,16 @@ data "aws_iam_policy_document" "sqs_s3_ses_policy" {
   }
 
   statement {
+    sid    = "S3StagedBucketAccess"
+    effect = "Allow"
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+    ]
+    resources = ["${aws_s3_bucket.bro-ses-inbox-staged.arn}/*"]
+  }
+
+  statement {
     sid    = "SESSend"
     effect = "Allow"
     actions = [
@@ -72,4 +82,3 @@ resource "aws_iam_role_policy" "lambda_inline_policy" {
   role   = aws_iam_role.lambda_role.id
   policy = data.aws_iam_policy_document.sqs_s3_ses_policy.json
 }
-
