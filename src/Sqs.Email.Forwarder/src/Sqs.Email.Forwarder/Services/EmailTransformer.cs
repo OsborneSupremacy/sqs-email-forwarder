@@ -43,7 +43,6 @@ internal class EmailTransformer : IEmailTransformer
         var recipient = _extractionService
             .ExtractRelevantRecipientInfo(receivedEmailInfo.Domain, mailObject.To, mailObject.Cc, mailObject.Bcc);
 
-        var subject = BuildForwardSubject(subjectOriginal, sender, recipient);
         var bodyHtml = BuildForwardHtmlBody(receivedEmailInfo, mailObject, sender, subjectOriginal);
 
         return new RepackagedEmailInfo
@@ -57,9 +56,6 @@ internal class EmailTransformer : IEmailTransformer
             OriginalDate = mailObject.Date
         };
     }
-
-    private static string BuildForwardSubject(string subjectOriginal, MailboxInfo sender, MailboxInfo recipient)
-        => $"[{sender.FriendlyName}]➡️[{recipient.LocalPart}] {subjectOriginal}";
 
     private string BuildForwardHtmlBody(ReceivedEmailInfo receivedEmailInfo, MimeMessage mailObject, MailboxInfo sender, string subjectOriginal)
     {
