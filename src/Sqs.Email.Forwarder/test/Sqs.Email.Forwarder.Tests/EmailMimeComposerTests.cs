@@ -29,6 +29,7 @@ public class EmailMimeComposerTests
             Resender = "resender@example.com",
             OriginalSenderEmail = "original@example.com",
             OriginalRecipientEmail = "recipient@example.com",
+            HasAttachments = true,
             OriginalMessageId = "original-message-id",
             OriginalDate = new DateTimeOffset(2026, 07, 07, 12, 34, 56, TimeSpan.Zero),
             OriginalUrl = string.Empty

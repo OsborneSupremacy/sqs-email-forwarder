@@ -10,6 +10,8 @@ internal record StagedEmail
 
     public required string OriginalRecipientEmail { get; init; }
 
+    public required bool HasAttachments { get; init; }
+
     public required DateTimeOffset OriginalDate { get; init; }
 
     public required string Domain { get; init; }

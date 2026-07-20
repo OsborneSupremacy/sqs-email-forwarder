@@ -46,12 +46,27 @@ public class ProcessorTests
                    """
         };
 
+        SQSEvent.SQSMessage emailWithAttachment = new()
+        {
+            Body = """
+                   {
+                     "Type": "Notification",
+                     "MessageId": "sns-envelope-id",
+                     "TopicArn": "arn:aws:sns:us-east-1:123456789012:ses-topic",
+                     "Message": "{\"notificationType\":\"Received\",\"mail\":{\"messageId\":\"email-with-attachment\"}}",
+                     "Timestamp": "2026-07-06T12:00:00.000Z"
+                   }
+                   """
+        };
+
+
         ImmutableList<SQSEvent.SQSMessage> messages = [
             htmlEmailMessage,
-            plainTextEmailMessage
+            plainTextEmailMessage,
+            emailWithAttachment
         ];
 
-        ImmutableList<string> expectedResult = ["html-email", "plain-text-email"];
+        ImmutableList<string> expectedResult = ["html-email", "plain-text-email", "email-with-attachment"];
 
         // act
         var processedMessageIds = await _sut.ProcessMessagesAsync(messages);

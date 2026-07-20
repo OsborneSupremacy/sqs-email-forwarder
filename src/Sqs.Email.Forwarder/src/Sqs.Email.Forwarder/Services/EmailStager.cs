@@ -63,6 +63,7 @@ internal class EmailStager : IEmailStager
             OriginalSubject = repackagedEmailInfo.SubjectOriginal,
             OriginalSenderEmail = repackagedEmailInfo.OriginalSenderEmail,
             OriginalRecipientEmail = repackagedEmailInfo.OriginalRecipientEmail,
+            HasAttachments = repackagedEmailInfo.HasAttachments,
             OriginalDate = repackagedEmailInfo.OriginalDate,
             Domain = repackagedEmailInfo.OriginalSenderEmail.GetEmailDomain(),
             OriginalUrl = repackagedEmailInfo.OriginalUrl,
