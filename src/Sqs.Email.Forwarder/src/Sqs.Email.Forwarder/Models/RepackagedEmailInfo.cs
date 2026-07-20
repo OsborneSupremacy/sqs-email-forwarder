@@ -7,7 +7,7 @@ internal record RepackagedEmailInfo
 {
     public required string MessageId { get; init; }
 
-    public required string SubjectOriginal { get; init; }
+    public required string Subject { get; init; }
 
     public required string HtmlBody { get; init; }
 
@@ -20,8 +20,6 @@ internal record RepackagedEmailInfo
     public required string OriginalRecipientEmail { get; init; }
 
     public required bool HasAttachments { get; init; }
-
-    public required string OriginalMessageId { get; init; }
 
     public required DateTimeOffset OriginalDate { get; init; }
 

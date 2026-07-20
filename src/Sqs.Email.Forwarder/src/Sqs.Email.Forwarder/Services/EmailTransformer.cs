@@ -49,14 +49,13 @@ internal class EmailTransformer : IEmailTransformer
         return new RepackagedEmailInfo
         {
             MessageId = receivedEmailInfo.MessageId,
-            SubjectOriginal = subjectOriginal,
+            Subject = subjectOriginal,
             HtmlBody = bodyHtml,
             RawEmail = receivedEmailInfo.RawEmail,
             Resender = receivedEmailInfo.Resender,
             OriginalSenderEmail = sender.EmailAddress,
             OriginalRecipientEmail = recipient.EmailAddress,
             HasAttachments = mailObject.Attachments.Any(),
-            OriginalMessageId = mailObject.MessageId ?? string.Empty,
             OriginalDate = mailObject.Date,
             OriginalUrl = receivedEmailInfo.Url
         };
