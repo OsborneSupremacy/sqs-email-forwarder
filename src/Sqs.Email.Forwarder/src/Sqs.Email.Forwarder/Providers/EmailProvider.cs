@@ -38,6 +38,15 @@ internal class EmailProvider : IEmailProvider
         var rawEmail = ms.ToArray();
 
         var emailSender = _config.EmailSenders[bucketIndex];
+        var presignedUrl = await _s3Client
+            .GetPreSignedURLAsync(new GetPreSignedUrlRequest
+            {
+                BucketName = bucket,
+                Key = messageId,
+                Verb = HttpVerb.GET,
+                Expires = DateTime.UtcNow.AddDays(7)
+            })
+            .ConfigureAwait(false);
 
         return new ReceivedEmailInfo
         {
@@ -45,7 +54,7 @@ internal class EmailProvider : IEmailProvider
             Resender = _config.EmailSenders[bucketIndex],
             RawEmail = rawEmail,
             Domain = emailSender.GetEmailDomain(),
-            Url = $"https://s3.console.aws.amazon.com/s3/object/{bucket}/{messageId}?region={_config.AwsRegion}"
+            Url = presignedUrl
         };
     }
 
