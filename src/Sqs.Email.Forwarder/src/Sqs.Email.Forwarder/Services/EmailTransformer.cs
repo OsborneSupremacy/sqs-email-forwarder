@@ -88,7 +88,8 @@ internal class EmailTransformer : IEmailTransformer
 
         e.AppendLine($"""
                                   <strong>Date:</strong> {mailObject.Date}<br />
-                                  <strong>Subject:</strong> {subjectOriginal}
+                                  <strong>Subject:</strong> {subjectOriginal}<br />
+                                  <strong>Attachments:</strong> {(mailObject.Attachments.Any() ? "Yes" : "No")}
                               </p>
                               <hr>
                                   <div style="font-family: sans-serif;">{extractedBody}</div>

@@ -14,8 +14,6 @@ internal record StagedEmail
 
     public required DateTimeOffset OriginalDate { get; init; }
 
-    public required string Domain { get; init; }
-
     public required string OriginalUrl { get; init; }
 
     public required string PresignedUrl { get; init; }
