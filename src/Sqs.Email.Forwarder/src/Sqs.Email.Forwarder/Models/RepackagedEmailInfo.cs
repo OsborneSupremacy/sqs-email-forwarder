@@ -7,8 +7,6 @@ internal record RepackagedEmailInfo
 {
     public required string MessageId { get; init; }
 
-    public required string Subject { get; init; }
-
     public required string SubjectOriginal { get; init; }
 
     public required string HtmlBody { get; init; }

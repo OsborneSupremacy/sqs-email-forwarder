@@ -49,7 +49,6 @@ internal class EmailTransformer : IEmailTransformer
         return new RepackagedEmailInfo
         {
             MessageId = receivedEmailInfo.MessageId,
-            Subject = subject,
             SubjectOriginal = subjectOriginal,
             HtmlBody = bodyHtml,
             RawEmail = receivedEmailInfo.RawEmail,
